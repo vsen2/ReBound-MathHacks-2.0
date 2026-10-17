@@ -30,7 +30,7 @@ This model treats excessive social media use as a dynamic emotional regulation i
 
 ## About Rebound
 
-**Rebound** is a minimalist anti-doomscrolling Chrome extension designed to help you break free from addictive social media feeds (like TikTok and Instagram). Featuring a gentle pastel aesthetic and high-priority DOM intervention banners, Rebound keeps you mindful of your daily digital limits without getting in your way.
+**Rebound** is an anti-doomscrolling Chrome extension designed to help you break free from addictive social media feeds (like TikTok and Instagram). Featuring high-priority DOM intervention banners, Rebound keeps you mindful of your daily digital limits without getting in your way.
 
 ---
 
@@ -50,10 +50,9 @@ This model treats excessive social media use as a dynamic emotional regulation i
 3. Toggle **Developer mode** on in the top-right corner.
 4. Click **Load unpacked** and select your `Rebound-extension` folder.
 
-Project by: Shaugnessy Pump, Ricky Wu, Victor Sen, Kaito Nagawaka 
-
 ---
 
 <div align="center">
-  <p>Built with 🩵, 💚, and 💛 for mindful browsing.</p>
+  <p>Built for mindful scrolling</p>
+  by Shaugnessy Pump, Ricky Wu, Victor Sen, Kaito Nagawaka 
 </div>
