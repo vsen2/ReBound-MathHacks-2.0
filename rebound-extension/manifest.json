@@ -11,6 +11,12 @@
     "*://*.tiktok.com/*",
     "*://*.instagram.com/*"
   ],
+  "web_accessible_resources": [
+    {
+      "resources": ["logo.png"],
+      "matches": ["*://*.tiktok.com/*", "*://*.instagram.com/*"]
+    }
+  ],
   "action": {
     "default_icon": "logo.png"
   },
