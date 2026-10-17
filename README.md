@@ -12,3 +12,50 @@ Shaugnessy Pump, Ricky Wu, Victor Sen, Kaito Nagawaka
 
 
 
+<div align="center">
+
+  <!-- Main Featured Logo/Graphic -->
+  <img src="logo.png" alt="Rebound Logo" width="220" />
+
+  # Rebound
+
+  ### *Take back your time from the infinite scroll.*
+
+  <!-- Custom Styled Badges / Links -->
+  <p>
+    <img src="https://img.shields.io/badge/MANIFEST-V3-38BDF8?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Manifest V3" />
+    <img src="https://img.shields.io/badge/STATUS-ACTIVE-34D399?style=for-the-badge&logo=statuspage&logoColor=white" alt="Status" />
+    <img src="https://img.shields.io/badge/LICENSE-MIT-F43F5E?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License" />
+  </p>
+
+</div>
+
+---
+
+## 🦅 About Rebound
+
+**Rebound** is a minimalist anti-doomscrolling Chrome extension designed to help you break free from addictive social media feeds (like TikTok and Instagram). Featuring a gentle pastel aesthetic and high-priority DOM intervention banners, Rebound keeps you mindful of your daily digital limits without getting in your way.
+
+---
+
+## ✨ Features
+
+* **⚡ Instant Site Interception:** Automatically detects when you navigate to TikTok or Instagram.
+* **⏳ Daily Goal Tracking:** Displays live remaining time indicators to keep your scrolling habits in check.
+* **🎨 Aesthetic Minimalist UI:** Custom dark-mode warning overlays with your very own soaring pastel bird logo.
+* **🛡️ High-Priority Injection:** Bypasses complex site wrappers using max `z-index` DOM overlays.
+
+---
+
+## 🛠️ Quick Local Setup
+
+1. **Download or Clone** this repository to your local machine.
+2. Open Google Chrome and navigate to `chrome://extensions/`.
+3. Toggle **Developer mode** on in the top-right corner.
+4. Click **Load unpacked** and select your `Rebound-extension` folder.
+
+---
+
+<div align="center">
+  <p>Built with 🩵, 💚, and 💛 for mindful browsing.</p>
+</div>
