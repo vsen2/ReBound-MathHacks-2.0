@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "Rebound - Anti-Doomscroll Monitor",
+  "version": "1.0",
+  "description": "Monitors active browsing time on target social media sites.",
+  "permissions": [
+    "tabs",
+    "storage"
+  ],
+  "host_permissions": [
+    "*://*.tiktok.com/*",
+    "*://*.instagram.com/*"
+  ],
+  "action": {
+    "default_icon": "logo.png"
+  },
+  "icons": {
+    "48": "logo.png",
+    "128": "logo.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.tiktok.com/*",
+        "*://*.instagram.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ]
+}
