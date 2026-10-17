@@ -284,7 +284,7 @@ def open_starting_survey():
 			return
 
 		state.set_starting_survey(parsed['Tstart'], parsed['Tgoal'])
-		text_boxes['dailyGoal'].set_val(f'{state.dailyGoal:g}')
+		text_boxes['dailyGoal'].set_val(f'{state.dailyGoal:.1f}')
 		update_graph()
 		popup_open = False
 		popup.destroy()
@@ -318,7 +318,10 @@ def open_new_day_popup(_=None):
 
 	if _ is not None:
 		state.advance_to_next_day()
-		clock_text.set_text(f'Day {state.current_day}  •  {format_sim_time(state.sim_minutes)}  (600x)')
+		text_boxes['dailyGoal'].set_val(f'{state.dailyGoal:.1f}')
+		text_boxes['timeScrolling'].set_val(f'{state.timeScrolling:g}')
+		text_boxes['nightScrolling'].set_val(f'{state.nightScrolling:g}')
+		clock_text.set_text(f'Day {state.current_day}  •  {format_sim_time(state.sim_minutes)}  (1 hr/s)')
 		fig.canvas.draw_idle()
 
 	popup = tk.Toplevel(parent)
@@ -448,6 +451,9 @@ def tick_clock():
 		state.sim_minutes += 6
 		if state.sim_minutes >= 1440:
 			state.advance_to_next_day()
+			text_boxes['dailyGoal'].set_val(f'{state.dailyGoal:.1f}')
+			text_boxes['timeScrolling'].set_val(f'{state.timeScrolling:g}')
+			text_boxes['nightScrolling'].set_val(f'{state.nightScrolling:g}')
 			clock_text.set_text(f'Day {state.current_day}  •  {format_sim_time(state.sim_minutes)}  (1 hr/s)')
 			fig.canvas.draw_idle()
 			open_new_day_popup(None)

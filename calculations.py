@@ -13,12 +13,14 @@ DOPAMINE_ITEMS = [
 	('I got 7+ hours of uninterrupted sleep last night.', 30),
 	('I avoided looking at screens for at least 1 hour before bed.', 20),
 	('I spent time outside in natural sunlight or exercised yesterday.', 25),
-	(
-		'I engaged in an offline, deep-focus hobby (e.g., reading a physical book, playing an instrument, sketching).',
-		25,
+	('I engaged in an offline, deep-focus hobby (e.g., reading a physical book, playing an instrument, sketching).', 25,
 	),
 ]
 
+def calc_daily_goal(day, Tstart, Tgoal):
+	"""Calculate the daily goal based on the starting survey values."""
+	daily_goal = Tgoal + (Tstart - Tgoal)* np.exp(-0.1 * day)
+	return daily_goal
 
 def calc_sigmoid(z):
 	"""Return the sigmoid function 1 / (1 + e^-z)."""
@@ -90,6 +92,7 @@ class UnscrollState:
 		self.sim_minutes = 8 * 60
 		self.current_day = 1
 		self.dopamine_selections = [False] * len(DOPAMINE_ITEMS)
+		self.dailyGoal = float(calc_daily_goal(self.current_day, self.Tstart, self.Tgoal))
 
 		# Calculated outputs
 		self.riskScore = 0.0
@@ -109,10 +112,10 @@ class UnscrollState:
 		return self.riskScore, self.sigmoidRiskScore
 
 	def set_starting_survey(self, t_start, t_goal):
-		"""Save pre-app Tstart and set dailyGoal from Tgoal."""
+		"""Save pre-app Tstart and Tgoal and calculate Day 1 dailyGoal using calc_daily_goal."""
 		self.Tstart = float(t_start)
 		self.Tgoal = float(t_goal)
-		self.dailyGoal = float(t_goal)
+		self.dailyGoal = float(calc_daily_goal(self.current_day, self.Tstart, self.Tgoal))
 		self.timeScrolling = 0.0
 		self.cleanScore = 1
 		self.recalculate()
@@ -124,7 +127,7 @@ class UnscrollState:
 		self.recalculate()
 
 	def advance_to_next_day(self):
-		"""Update clean streak based on whether scrolling stayed within dailyGoal, then reset for new day."""
+		"""Update clean streak based on whether scrolling stayed within dailyGoal, then update dailyGoal for the new day."""
 		if self.timeScrolling <= self.dailyGoal:
 			self.cleanScore += 1
 		else:
@@ -133,6 +136,7 @@ class UnscrollState:
 		self.nightScrolling = 0.0
 		self.current_day += 1
 		self.sim_minutes = 8 * 60
+		self.dailyGoal = float(calc_daily_goal(self.current_day, self.Tstart, self.Tgoal))
 		self.recalculate()
 
 	def record_instagram_scroll(self, minutes_added, is_night=False):

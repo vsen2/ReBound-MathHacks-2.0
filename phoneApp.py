@@ -356,7 +356,7 @@ risk_field_defs = [
 	('nightScrolling', 'nightScrolling (min)', f'{state.nightScrolling:g}'),
 	('psychState', 'psychState (0-1)', f'{state.psychState:g}'),
 	('timeScrolling', 'timeScrolling (min)', f'{state.timeScrolling:g}'),
-	('dailyGoal', 'dailyGoal (min)', f'{state.dailyGoal:g}'),
+	('dailyGoal', 'dailyGoal (min)', f'{state.dailyGoal:.1f}'),
 	('timeBetweenLogins', 'timeBetweenLogins (min)', f'{state.timeBetweenLogins:g}'),
 	('Dopamine', 'Dopamine (%)', f'{state.Dopamine:.0f}%'),
 ]
@@ -396,7 +396,7 @@ def sync_entries_from_state():
 		'nightScrolling': f'{state.nightScrolling:g}',
 		'psychState': f'{state.psychState:g}',
 		'timeScrolling': f'{state.timeScrolling:g}',
-		'dailyGoal': f'{state.dailyGoal:g}',
+		'dailyGoal': f'{state.dailyGoal:.1f}',
 		'timeBetweenLogins': f'{state.timeBetweenLogins:g}',
 		'Dopamine': f'{state.Dopamine:.0f}%',
 	}
@@ -756,7 +756,7 @@ def refresh_ui():
 		)
 
 	widget_cv.itemconfig(widget_scrolled_item, text=f'Scrolled: {state.timeScrolling:.0f} min')
-	widget_cv.itemconfig(widget_limit_item, text=f'Limit: {state.dailyGoal:.0f} min')
+	widget_cv.itemconfig(widget_limit_item, text=f'Limit: {state.dailyGoal:.1f} min')
 
 	ratio = min(1.0, max(0.0, state.timeScrolling / state.dailyGoal)) if state.dailyGoal > 0 else 1.0
 	fill_w = max(12, int(298 * ratio))
