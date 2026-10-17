@@ -8,14 +8,14 @@ from tkinter import messagebox
 
 from calculations import (
 	DOPAMINE_ITEMS,
-	UnscrollState,
+	ReBoundState,
 	format_sim_time,
 	get_daily_goal_curve,
 	get_sigmoid_curve,
 )
 
 # Shared calculation/state model from calculations.py
-state = UnscrollState()
+state = ReBoundState()
 state.dailyGoal = 1.0
 state.Dopamine = 0.0
 state.recalculate()
@@ -77,7 +77,7 @@ def make_pill_button(
 
 # Create the polished plot figure in the background with space on the right for variable inputs
 fig, ax = plt.subplots(figsize=(11, 6), facecolor='#0f172a')
-fig.canvas.manager.set_window_title('Unscroll')
+fig.canvas.manager.set_window_title('reBound')
 plt.subplots_adjust(left=0.07, right=0.58, top=0.82, bottom=0.14)
 ax.set_facecolor('#1e293b')
 
@@ -108,7 +108,7 @@ point_risk, = ax.plot(
 )
 
 ax.set_title(
-	'Unscroll — Doomscrolling Risk Score (Sigmoid)',
+	'reBound — Doomscrolling Risk Score (Sigmoid)',
 	fontsize=13,
 	fontweight='bold',
 	color='#f8fafc',
@@ -200,7 +200,7 @@ def update_graph(_=None):
 		ax.set_xlim(-x_limit, x_limit)
 		ax.set_ylim(-0.05, 1.05)
 		ax.set_title(
-			'Unscroll — Doomscrolling Risk Score (Sigmoid)',
+			'reBound — Doomscrolling Risk Score (Sigmoid)',
 			fontsize=13,
 			fontweight='bold',
 			color='#f8fafc',
@@ -228,7 +228,7 @@ def update_graph(_=None):
 		y_max = max(state.Tstart, state.Tgoal, state.dailyGoal, float(goals_arr.max())) * 1.1 + 5.0
 		ax.set_ylim(y_min, y_max)
 		ax.set_title(
-			'Unscroll — Daily Goal Progression',
+			'reBound — Daily Goal Progression',
 			fontsize=13,
 			fontweight='bold',
 			color='#f8fafc',
@@ -327,7 +327,7 @@ def open_starting_survey():
 	popup_open = True
 
 	popup = tk.Toplevel(parent)
-	popup.title('Unscroll - Beginning Survey')
+	popup.title('reBound - Beginning Survey')
 	popup.configure(bg='#0f172a')
 	popup.resizable(False, False)
 	popup.transient(parent)
@@ -444,7 +444,7 @@ def open_new_day_popup(_=None):
 		update_graph()
 
 	popup = tk.Toplevel(parent)
-	popup.title(f'Unscroll - Day {state.current_day} Survey')
+	popup.title(f'reBound - Day {state.current_day} Survey')
 	popup.configure(bg='#0f172a')
 	popup.resizable(False, False)
 	popup.transient(parent)

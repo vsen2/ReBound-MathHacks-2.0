@@ -37,12 +37,13 @@ def calc_sigmoid(z):
 def calc_risk(nightScrolling, psychState, timeScrolling, dailyGoal, timeBetweenLogins, Dopamine):
 	"""Calculate riskScore and sigmoidRiskScore from the daily variables."""
 	safe_goal = dailyGoal if dailyGoal != 0 else 1.0
+	effective_scroll = max(float(timeScrolling), float(nightScrolling))
 	riskScore = (
 		w0
-		+ w1 * ((timeScrolling - safe_goal) / safe_goal)
+		+ w1 * ((effective_scroll - safe_goal) / safe_goal)
 		+ w2 * psychState
 		+ w3 * ((100.0 - Dopamine) / 100.0)
-		+ w4 * (nightScrolling / 60.0)
+		+ w4 * (nightScrolling / safe_goal)
 		- w5 * (timeBetweenLogins / 60.0)
 	)
 	sigmoidRiskScore = calc_sigmoid(riskScore)
@@ -92,7 +93,7 @@ def format_sim_time(total_mins):
 	return f'{hrs12}:{mins:02d} {period}'
 
 
-class UnscrollState:
+class ReBoundState:
 	"""Holds all simulation variables and calls the calculation functions."""
 
 	def __init__(self):
@@ -194,4 +195,8 @@ class UnscrollState:
 		if is_night:
 			self.nightScrolling += float(minutes_added)
 		self.recalculate()
+
+
+# Alias for backwards compatibility
+UnscrollState = ReBoundState
 

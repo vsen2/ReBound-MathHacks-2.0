@@ -1,3 +1,4 @@
+import os
 import tkinter as tk
 from tkinter import messagebox
 import matplotlib
@@ -7,7 +8,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 from calculations import (
 	DOPAMINE_ITEMS,
-	UnscrollState,
+	ReBoundState,
 	calc_daily_goal,
 	format_sim_time,
 	get_daily_goal_curve,
@@ -15,12 +16,33 @@ from calculations import (
 )
 
 # Shared calculation/state model from calculations.py
-state = UnscrollState()
+state = ReBoundState()
 popup_open = False
 sim_paused = False
 app_running = True
 current_screen_name = 'home'
 reel_counter = 1
+LOGO_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logo.png')
+
+
+def load_logo_photo(target_size=72):
+	"""Load and resize logo.png to target_size x target_size for Tkinter."""
+	if not os.path.exists(LOGO_PATH):
+		return None
+	try:
+		from PIL import Image, ImageTk
+		img = Image.open(LOGO_PATH).convert('RGBA')
+		resample = getattr(Image, 'Resampling', Image).LANCZOS
+		img = img.resize((target_size, target_size), resample)
+		return ImageTk.PhotoImage(img)
+	except Exception:
+		try:
+			raw = tk.PhotoImage(file=LOGO_PATH)
+			sx = max(1, round(raw.width() / target_size))
+			sy = max(1, round(raw.height() / target_size))
+			return raw.subsample(sx, sy)
+		except Exception:
+			return None
 
 
 def safe_set_item_fill(cv, item, fill_color):
@@ -76,10 +98,14 @@ def make_pill_button(
 
 # --- Main Phone Simulator Window ---
 root = tk.Tk()
-root.title('Unscroll')
+root.title('reBound')
 root.geometry('430x830')
 root.resizable(False, False)
 root.configure(bg='#090d16')
+
+window_logo_img = load_logo_photo(64)
+if window_logo_img is not None:
+	root.iconphoto(True, window_logo_img)
 
 
 def on_app_close():
@@ -196,7 +222,7 @@ pause_cv.bind('<ButtonRelease-1>', toggle_sim_pause)
 header_row = tk.Frame(home_screen, bg='#0f172a')
 header_row.pack(fill='x', padx=20, pady=(12, 4))
 tk.Label(
-	header_row, text='Unscroll', font=('Segoe UI', 14, 'bold'), fg='#f8fafc', bg='#0f172a'
+	header_row, text='reBound', font=('Segoe UI', 14, 'bold'), fg='#f8fafc', bg='#0f172a'
 ).pack(side='left')
 
 sim_speed_lbl = tk.Label(
@@ -217,7 +243,7 @@ widget_cv.pack(padx=18, pady=6)
 
 draw_rounded_rect(widget_cv, 2, 2, 336, 183, r=24, fill='#1e293b', outline='#334155', width=1.5)
 widget_cv.create_text(
-	20, 24, text='UNSCROLL WIDGET', anchor='w', fill='#38bdf8', font=('Segoe UI', 9, 'bold')
+	20, 24, text='REBOUND WIDGET', anchor='w', fill='#38bdf8', font=('Segoe UI', 9, 'bold')
 )
 widget_risk_item = widget_cv.create_text(
 	318, 24, text='Risk: 0.0%', anchor='e', fill='#f87171', font=('Segoe UI', 9, 'bold')
@@ -243,7 +269,7 @@ draw_rounded_rect(widget_cv, 20, 148, 318, 162, r=7, fill='#0f172a', outline='')
 widget_prog_fill = draw_rounded_rect(
 	widget_cv, 20, 148, 28, 162, r=7, fill='#38bdf8', outline=''
 )
-widget_cv.bind('<ButtonRelease-1>', lambda e: show_screen(unscroll_screen, 'unscroll'))
+widget_cv.bind('<ButtonRelease-1>', lambda e: show_screen(unscroll_screen, 'rebound'))
 
 
 def trigger_new_day():
@@ -276,17 +302,21 @@ apps_grid = tk.Frame(home_screen, bg='#0f172a')
 apps_grid.pack(fill='x', padx=22)
 
 
-def make_app_icon(parent, icon_char, title, bg_color, hover_color, command):
+def make_app_icon(parent, icon_char, title, bg_color, hover_color, command, photo_image=None):
 	holder = tk.Frame(parent, bg='#0f172a')
 	cv = tk.Canvas(holder, width=84, height=84, bg='#0f172a', highlightthickness=0, cursor='hand2')
-	bg_rect = draw_rounded_rect(cv, 4, 4, 80, 80, r=22, fill=bg_color, outline='')
-	cv.create_text(42, 42, text=icon_char, font=('Segoe UI Emoji', 26), fill='white')
+	bg_rect = draw_rounded_rect(cv, 4, 4, 80, 80, r=22, fill=bg_color, outline='#334155', width=1)
+	if photo_image is not None:
+		cv.image = photo_image
+		cv.create_image(42, 42, image=photo_image)
+	else:
+		cv.create_text(42, 42, text=icon_char, font=('Segoe UI Emoji', 26), fill='white')
 	cv.pack()
 	tk.Label(holder, text=title, font=('Segoe UI', 9, 'bold'), fg='#e2e8f0', bg='#0f172a').pack(
 		pady=(5, 0)
 	)
-	cv.bind('<Enter>', lambda e: cv.itemconfig(bg_rect, fill=hover_color))
-	cv.bind('<Leave>', lambda e: cv.itemconfig(bg_rect, fill=bg_color))
+	cv.bind('<Enter>', lambda e: safe_set_item_fill(cv, bg_rect, hover_color))
+	cv.bind('<Leave>', lambda e: safe_set_item_fill(cv, bg_rect, bg_color))
 	cv.bind('<ButtonRelease-1>', lambda e: command())
 	return holder
 
@@ -297,8 +327,15 @@ def open_instagram_app():
 	show_screen(instagram_screen, 'instagram')
 
 
+unscroll_logo_img = load_logo_photo(72)
 unscroll_icon = make_app_icon(
-	apps_grid, '📈', 'Unscroll', '#2563eb', '#1d4ed8', lambda: show_screen(unscroll_screen, 'unscroll')
+	apps_grid,
+	'📈',
+	'reBound',
+	'#ffffff',
+	'#e2e8f0',
+	lambda: show_screen(unscroll_screen, 'rebound'),
+	photo_image=unscroll_logo_img,
 )
 unscroll_icon.grid(row=0, column=0, padx=16, pady=6)
 
@@ -307,12 +344,19 @@ insta_icon.grid(row=0, column=1, padx=16, pady=6)
 
 
 # =====================================================================
-# 2. UNSCROLL APP SCREEN (Tabs: Risk Sigmoid & Daily Goal Chart)
+# 2. REBOUND APP SCREEN (Tabs: Risk Sigmoid & Daily Goal Chart)
 # =====================================================================
 unscroll_header = tk.Frame(unscroll_screen, bg='#0f172a', pady=6)
 unscroll_header.pack(fill='x', padx=12)
+
+unscroll_header_logo = load_logo_photo(26)
+if unscroll_header_logo is not None:
+	header_logo_lbl = tk.Label(unscroll_header, image=unscroll_header_logo, bg='#0f172a')
+	header_logo_lbl.image = unscroll_header_logo
+	header_logo_lbl.pack(side='left', padx=(0, 6))
+
 tk.Label(
-	unscroll_header, text='Unscroll Analytics', font=('Segoe UI', 12, 'bold'), fg='#f8fafc', bg='#0f172a'
+	unscroll_header, text='reBound Analytics', font=('Segoe UI', 12, 'bold'), fg='#f8fafc', bg='#0f172a'
 ).pack(side='left')
 
 new_day_top_pill = make_pill_button(
@@ -502,15 +546,10 @@ def apply_variable_inputs():
 		status_msg.config(text='dailyGoal cannot be 0.')
 		return
 
-	# If dailyGoal wasn't manually changed, recalculate it from calc_daily_goal parameters
-	if abs(entered_goal - state.dailyGoal) < 0.05:
-		state.recalculate()
-		state.update_daily_goal()
-	else:
-		state.dailyGoal = entered_goal
-		state.recalculate()
+	state.dailyGoal = entered_goal
+	state.recalculate()
 
-	if state.timeScrolling > state.dailyGoal:
+	if max(state.timeScrolling, state.nightScrolling) > state.dailyGoal:
 		state.cleanScore = 0
 
 	sync_entries_from_state()
@@ -742,7 +781,8 @@ reel_stats_item = reel_cv.create_text(
 def scroll_more_reels(minutes_added, is_night=False):
 	global reel_counter
 	reel_counter += 1
-	state.record_instagram_scroll(minutes_added, is_night=is_night)
+	night_now = is_night or ((state.sim_minutes % 1440) >= 20 * 60)
+	state.record_instagram_scroll(minutes_added, is_night=night_now)
 	sync_entries_from_state()
 	reel_cv.itemconfig(reel_title_item, text=f'🎬  Infinite Reel #{reel_counter}')
 	reel_cv.itemconfig(
@@ -810,7 +850,7 @@ def open_starting_survey():
 	popup_open = True
 
 	popup = tk.Toplevel(root)
-	popup.title('Unscroll - Beginning Survey')
+	popup.title('reBound - Beginning Survey')
 	popup.configure(bg='#0f172a')
 	popup.resizable(False, False)
 	popup.transient(root)
@@ -918,7 +958,7 @@ def open_new_day_popup():
 	popup_open = True
 
 	popup = tk.Toplevel(root)
-	popup.title(f'Unscroll - Day {state.current_day} Survey')
+	popup.title(f'reBound - Day {state.current_day} Survey')
 	popup.configure(bg='#0f172a')
 	popup.resizable(False, False)
 	popup.transient(root)
