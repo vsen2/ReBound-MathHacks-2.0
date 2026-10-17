@@ -582,7 +582,7 @@
 
 		function calcDailyGoal(day, Tstart, Tgoal, timeBetweenLogins = 0.0, relapseProbability = 0.5) {
 			const reasonableTimeBetweenLogins = 60.0;
-			const dampingCoefficient = 0.1;
+			const dampingCoefficient = 0.5;
 			const baseGoal = (d) => Tgoal + (Tstart - Tgoal) * Math.exp(-0.1 * d);
 			const behavioralIndex = Math.max(0.0, 1.0 - (timeBetweenLogins / reasonableTimeBetweenLogins));
 			const personalState = dampingCoefficient * (relapseProbability + behavioralIndex) * (Tstart - Tgoal);
@@ -915,10 +915,12 @@
 		}
 
 		function simulateInstagram(mins, isNight) {
-			state.cleanScore = 0;
 			state.timeScrolling += mins;
 			const nightNow = isNight || ((state.sim_minutes % 1440) >= 20 * 60);
 			if (nightNow) state.nightScrolling += mins;
+			if (Math.max(state.timeScrolling, state.nightScrolling) > state.dailyGoal) {
+				state.cleanScore = 0;
+			}
 			recalculateRisk();
 			syncInputsFromState();
 			refreshUI(true);
