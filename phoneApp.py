@@ -159,7 +159,7 @@ def toggle_sim_pause(_=None):
 	else:
 		pause_cv.itemconfig(pause_shape, fill='#f59e0b')
 		pause_cv.itemconfig(pause_text_item, text='⏸  Stop Time', fill='#0f172a')
-		sim_speed_lbl.config(text='⏱ 600x Speed', fg='#38bdf8')
+		sim_speed_lbl.config(text='⏱ 1 hr/s', fg='#38bdf8')
 
 
 pause_cv.bind('<ButtonRelease-1>', toggle_sim_pause)
@@ -176,7 +176,7 @@ tk.Label(
 
 sim_speed_lbl = tk.Label(
 	header_row,
-	text='⏱ 600x Speed',
+	text='⏱ 1 hr/s',
 	font=('Segoe UI', 8, 'bold'),
 	fg='#38bdf8',
 	bg='#0f172a',
@@ -364,7 +364,7 @@ risk_field_defs = [
 var_entries = {}
 for idx, (key, label_text, default_v) in enumerate(risk_field_defs, start=1):
 	tk.Label(
-		inputs_panel, text=label_text, font=('Segoe UI', 8.5), bg='#1e293b', fg='#cbd5e1'
+		inputs_panel, text=label_text, font=('Segoe UI', 9), bg='#1e293b', fg='#cbd5e1'
 	).grid(row=idx, column=0, sticky='w', pady=3)
 	ent = tk.Entry(
 		inputs_panel,
@@ -768,15 +768,15 @@ def refresh_ui():
 
 
 def tick_clock():
-	"""Advance simulated clock at 600x speed (1 simulated minute every 100 ms)."""
+	"""Advance simulated clock at 1 hour per second (6 simulated minutes every 100 ms)."""
 	if not popup_open and not sim_paused:
-		state.sim_minutes += 1
+		state.sim_minutes += 6
 		if current_screen_name == 'instagram':
-			state.record_instagram_scroll(1.0, is_night=(state.sim_minutes % 1440) >= 20 * 60)
+			state.record_instagram_scroll(6.0, is_night=(state.sim_minutes % 1440) >= 20 * 60)
 			sync_entries_from_state()
 			reel_cv.itemconfig(
 				reel_stats_item,
-				text=f'Scrolling live at 600x ({format_sim_time(state.sim_minutes)})...\nTotal Today: {state.timeScrolling:.0f} min (Limit: {state.dailyGoal:.0f} min)\nClean Streak: {state.cleanScore}',
+				text=f'Scrolling live ({format_sim_time(state.sim_minutes)})...\nTotal Today: {state.timeScrolling:.0f} min (Limit: {state.dailyGoal:.0f} min)\nClean Streak: {state.cleanScore}',
 			)
 
 		if state.sim_minutes >= 1440:

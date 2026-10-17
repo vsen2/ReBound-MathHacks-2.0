@@ -82,7 +82,7 @@ right_card = FancyBboxPatch(
 	linewidth=1.5,
 	zorder=0,
 )
-fig.patches.append(right_card)
+fig.add_artist(right_card)
 
 x, y, _ = get_sigmoid_curve(state.riskScore)
 line_curve, = ax.plot(x, y, label='Sigmoid Curve', color='#38bdf8', linewidth=2.5, linestyle='-')
@@ -215,9 +215,14 @@ def open_starting_survey():
 	global popup_open
 	if popup_open:
 		return
+	parent = fig.canvas.manager.window
+	try:
+		if not parent.winfo_exists():
+			return
+	except tk.TclError:
+		return
 	popup_open = True
 
-	parent = fig.canvas.manager.window
 	popup = tk.Toplevel(parent)
 	popup.title('Unscroll - Beginning Survey')
 	popup.configure(bg='#0f172a')
@@ -303,6 +308,12 @@ def open_new_day_popup(_=None):
 	global popup_open
 	if popup_open:
 		return
+	parent = fig.canvas.manager.window
+	try:
+		if not parent.winfo_exists():
+			return
+	except tk.TclError:
+		return
 	popup_open = True
 
 	if _ is not None:
@@ -310,7 +321,6 @@ def open_new_day_popup(_=None):
 		clock_text.set_text(f'Day {state.current_day}  •  {format_sim_time(state.sim_minutes)}  (600x)')
 		fig.canvas.draw_idle()
 
-	parent = fig.canvas.manager.window
 	popup = tk.Toplevel(parent)
 	popup.title(f'Unscroll - Day {state.current_day} Survey')
 	popup.configure(bg='#0f172a')
@@ -408,7 +418,7 @@ def toggle_pause(_=None):
 		clock_text.set_color('#f59e0b')
 	else:
 		pause_btn.label.set_text('Stop Time')
-		clock_text.set_text(f'Day {state.current_day}  •  {format_sim_time(state.sim_minutes)}  (600x)')
+		clock_text.set_text(f'Day {state.current_day}  •  {format_sim_time(state.sim_minutes)}  (1 hr/s)')
 		clock_text.set_color('#38bdf8')
 	fig.canvas.draw_idle()
 
@@ -426,19 +436,30 @@ new_day_btn.on_clicked(open_new_day_popup)
 
 
 def tick_clock():
-	"""Advance simulated clock at 600x speed (1 simulated minute every 100 ms)."""
+	"""Advance simulated clock at 1 hour per second (6 simulated minutes every 100 ms)."""
 	win = fig.canvas.manager.window
+	try:
+		if not win.winfo_exists():
+			return
+	except tk.TclError:
+		return
+
 	if not popup_open and not sim_paused:
-		state.sim_minutes += 1
+		state.sim_minutes += 6
 		if state.sim_minutes >= 1440:
 			state.advance_to_next_day()
-			clock_text.set_text(f'Day {state.current_day}  •  {format_sim_time(state.sim_minutes)}  (600x)')
+			clock_text.set_text(f'Day {state.current_day}  •  {format_sim_time(state.sim_minutes)}  (1 hr/s)')
 			fig.canvas.draw_idle()
 			open_new_day_popup(None)
 		else:
-			clock_text.set_text(f'Day {state.current_day}  •  {format_sim_time(state.sim_minutes)}  (600x)')
+			clock_text.set_text(f'Day {state.current_day}  •  {format_sim_time(state.sim_minutes)}  (1 hr/s)')
 			fig.canvas.draw_idle()
-	win.after(100, tick_clock)
+
+	try:
+		if win.winfo_exists():
+			win.after(100, tick_clock)
+	except tk.TclError:
+		return
 
 
 fig.canvas.manager.window.after(100, open_starting_survey)
