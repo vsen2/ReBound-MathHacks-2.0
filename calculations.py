@@ -13,8 +13,7 @@ DOPAMINE_ITEMS = [
 	('I got 7+ hours of uninterrupted sleep last night.', 30),
 	('I avoided looking at screens for at least 1 hour before bed.', 20),
 	('I spent time outside in natural sunlight or exercised yesterday.', 25),
-	('I engaged in an offline, deep-focus hobby (e.g., reading a physical book, playing an instrument, sketching).', 25,
-	),
+	('I engaged in an offline, deep-focus hobby (e.g., reading a physical book, playing an instrument, sketching).', 25,),
 ]
 
 def calc_daily_goal(day, Tstart, Tgoal, timeBetweenLogins=0.0, relapseProbability=0.5):
