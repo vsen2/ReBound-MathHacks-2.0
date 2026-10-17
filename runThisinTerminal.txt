@@ -1,1 +1,1 @@
-python -m pip install --upgrade pip numpy matplotlib pillow
+python -m pip install --upgrade pip numpy matplotlib pillow pygetwindow

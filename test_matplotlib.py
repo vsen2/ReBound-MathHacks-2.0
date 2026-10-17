@@ -1,7 +1,8 @@
-import matplotlib.pyplot as plt
-import numpy as np
 import tkinter as tk
 from tkinter import messagebox
+
+import matplotlib.pyplot as plt
+import numpy as np
 
 def collect_inputs():
 	root = tk.Tk()
