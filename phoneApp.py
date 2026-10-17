@@ -432,9 +432,9 @@ point_risk, = ax.plot(
 	label=f'Risk: {state.sigmoidRiskScore:.1%}',
 )
 
-ax.set_title('Doomscrolling Risk (Sigmoid)', fontsize=9.5, fontweight='bold', color='#f8fafc')
-ax.set_xlabel('Risk Score (z)', fontsize=8, color='#cbd5e1')
-ax.set_ylabel('Probability σ(z)', fontsize=8, color='#cbd5e1')
+ax.set_title('Doomscrolling Risk', fontsize=9.5, fontweight='bold', color='#f8fafc')
+ax.set_xlabel('Risk Score', fontsize=8, color='#cbd5e1')
+ax.set_ylabel('Probability', fontsize=8, color='#cbd5e1')
 ax.tick_params(colors='#94a3b8', labelsize=7.5)
 for spine in ax.spines.values():
 	spine.set_color('#334155')
@@ -446,7 +446,7 @@ canvas.get_tk_widget().pack(fill='x', padx=12, pady=(2, 4))
 
 unscroll_clean_lbl = tk.Label(
 	risk_tab_frame,
-	text='Clean Streak: 1  •  Risk: 0.0% (z=0.00)',
+	text='Clean Streak: 1  •  Risk: 0.0%',
 	font=('Segoe UI', 9, 'bold'),
 	bg='#1e293b',
 	fg='#38bdf8',
@@ -458,16 +458,16 @@ inputs_panel = tk.Frame(risk_tab_frame, bg='#1e293b', padx=14, pady=6)
 inputs_panel.pack(fill='both', expand=True, padx=12, pady=(2, 6))
 
 tk.Label(
-	inputs_panel, text='Risk Score Variables', font=('Segoe UI', 10, 'bold'), bg='#1e293b', fg='#f8fafc'
+	inputs_panel, text='Risk Score Factors', font=('Segoe UI', 10, 'bold'), bg='#1e293b', fg='#f8fafc'
 ).grid(row=0, column=0, columnspan=2, sticky='w', pady=(0, 3))
 
 risk_field_defs = [
-	('nightScrolling', 'nightScrolling (min)', f'{state.nightScrolling:g}'),
-	('psychState', 'psychState (0-1)', f'{state.psychState:g}'),
-	('timeScrolling', 'timeScrolling (min)', f'{state.timeScrolling:g}'),
-	('dailyGoal', 'dailyGoal (min)', f'{state.dailyGoal:.1f}'),
-	('timeBetweenLogins', 'timeBetweenLogins (min)', f'{state.timeBetweenLogins:g}'),
-	('Dopamine', 'Dopamine (%)', f'{state.Dopamine:.0f}%'),
+	('nightScrolling', 'Night Scrolling (min)', f'{state.nightScrolling:g}'),
+	('psychState', 'Stress / Psych Level (0-1)', f'{state.psychState:g}'),
+	('timeScrolling', 'Total Scrolling Today (min)', f'{state.timeScrolling:g}'),
+	('dailyGoal', 'Daily Limit (min)', f'{state.dailyGoal:.1f}'),
+	('timeBetweenLogins', 'Time Between Logins (min)', f'{state.timeBetweenLogins:g}'),
+	('Dopamine', 'Healthy Dopamine (%)', f'{state.Dopamine:.0f}%'),
 ]
 
 var_entries = {}
@@ -620,7 +620,7 @@ point_today_goal, = ax_goal.plot(
 )
 
 ax_goal.set_title('Daily Goal Progression', fontsize=9.5, fontweight='bold', color='#f8fafc')
-ax_goal.set_xlabel('Day (t)', fontsize=8, color='#cbd5e1')
+ax_goal.set_xlabel('Day', fontsize=8, color='#cbd5e1')
 ax_goal.set_ylabel('Goal Limit (min)', fontsize=8, color='#cbd5e1')
 ax_goal.tick_params(colors='#94a3b8', labelsize=7.5)
 for spine in ax_goal.spines.values():
@@ -646,18 +646,18 @@ goal_info_card.pack(fill='both', expand=True, padx=12, pady=(2, 6))
 
 tk.Label(
 	goal_info_card,
-	text='Daily Goal Parameters (calc_daily_goal)',
+	text='Daily Goal Settings',
 	font=('Segoe UI', 10, 'bold'),
 	fg='#f8fafc',
 	bg='#1e293b',
 ).grid(row=0, column=0, columnspan=2, sticky='w', pady=(0, 3))
 
 goal_field_defs = [
-	('day', 'day (t)', f'{state.current_day:g}'),
-	('Tstart', 'Tstart (min)', f'{state.Tstart:g}'),
-	('Tgoal', 'Tgoal (min)', f'{state.Tgoal:g}'),
-	('timeBetweenLogins', 'timeBetweenLogins (min)', f'{state.timeBetweenLogins:g}'),
-	('relapseProbability', 'relapseProbability (0-1)', f'{state.sigmoidRiskScore:.3f}'),
+	('day', 'Current Day', f'{state.current_day:g}'),
+	('Tstart', 'Starting Time (min)', f'{state.Tstart:g}'),
+	('Tgoal', 'Target Goal (min)', f'{state.Tgoal:g}'),
+	('timeBetweenLogins', 'Time Between Logins (min)', f'{state.timeBetweenLogins:g}'),
+	('relapseProbability', 'Relapse Risk (0-1)', f'{state.sigmoidRiskScore:.3f}'),
 ]
 
 for idx, (key, label_text, default_v) in enumerate(goal_field_defs, start=1):
