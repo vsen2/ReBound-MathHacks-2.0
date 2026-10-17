@@ -8,10 +8,6 @@ Standard app blockers rely on rigid daily limits that often trigger the Abstinen
 This model treats excessive social media use as a dynamic emotional regulation issue. By combining daily subjective check-ins (craving, withdrawal, FOMO, stress) with objective behavioral telemetry (inter-login frequency and daily duration), the algorithm dynamically adjusts daily target recommendations to optimize long-term adherence and prevent relapse.
 
 
-Shaugnessy Pump, Ricky Wu, Victor Sen, Kaito Nagawaka 
-
-
-
 <div align="center">
 
   <!-- Main Featured Logo/Graphic -->
@@ -53,6 +49,8 @@ Shaugnessy Pump, Ricky Wu, Victor Sen, Kaito Nagawaka
 2. Open Google Chrome and navigate to `chrome://extensions/`.
 3. Toggle **Developer mode** on in the top-right corner.
 4. Click **Load unpacked** and select your `Rebound-extension` folder.
+
+Project by: Shaugnessy Pump, Ricky Wu, Victor Sen, Kaito Nagawaka 
 
 ---
 
