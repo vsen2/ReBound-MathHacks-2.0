@@ -52,6 +52,11 @@ This model treats excessive social media use as a dynamic emotional regulation i
 
 ---
 
+## Planning Process and Project Reserch
+https://docs.google.com/document/d/1aGy8eP8ZeS42rUoAZx-p-r2IdaPxZM-8INkOuI_EfVg/edit?usp=sharing
+
+---
+
 <div align="center">
   <p>Built for mindful scrolling</p>
   by Shaugnessy Pump, Ricky Wu, Victor Sen, Kaito Nagawaka 
