@@ -17,10 +17,17 @@ DOPAMINE_ITEMS = [
 	),
 ]
 
-def calc_daily_goal(day, Tstart, Tgoal):
-	"""Calculate the daily goal based on the starting survey values."""
-	daily_goal = Tgoal + (Tstart - Tgoal)* np.exp(-0.1 * day)
-	return daily_goal
+def calc_daily_goal(day, Tstart, Tgoal, timeBetweenLogins=0.0, relapseProbability=0.5):
+	"""Calculate the daily goal based on the starting survey values and behavioral/relapse state."""
+	reasonableTimeBetweenLogins = 60.0
+	dampingCoefficient = 0.1
+	daily_goal = lambda d: Tgoal + (Tstart - Tgoal) * np.exp(-0.1 * d)
+
+	behavioral_index = np.maximum(0.0, 1.0 - (timeBetweenLogins / reasonableTimeBetweenLogins))
+	personal_state = dampingCoefficient * (relapseProbability + behavioral_index) * (Tstart - Tgoal)
+	recommended_goal = daily_goal(day + 1) + personal_state
+	return recommended_goal
+
 
 def calc_sigmoid(z):
 	"""Return the sigmoid function 1 / (1 + e^-z)."""
@@ -55,6 +62,22 @@ def get_sigmoid_curve(riskScore, num_points=200):
 	x_vals = np.linspace(-x_limit, x_limit, num_points)
 	y_vals = calc_sigmoid(x_vals)
 	return x_vals, y_vals, x_limit
+
+
+def get_daily_goal_curve(
+	Tstart,
+	Tgoal,
+	current_day=1,
+	timeBetweenLogins=0.0,
+	relapseProbability=0.5,
+	min_days=30,
+	num_points=200,
+):
+	"""Generate (days, goals) arrays showing how the daily goal decreases over time."""
+	max_day = max(min_days, int(current_day) + 5)
+	days = np.linspace(0, max_day, num_points)
+	goals = calc_daily_goal(days, Tstart, Tgoal, timeBetweenLogins, relapseProbability)
+	return days, goals, max_day
 
 
 def format_sim_time(total_mins):
@@ -92,12 +115,12 @@ class UnscrollState:
 		self.sim_minutes = 8 * 60
 		self.current_day = 1
 		self.dopamine_selections = [False] * len(DOPAMINE_ITEMS)
-		self.dailyGoal = float(calc_daily_goal(self.current_day, self.Tstart, self.Tgoal))
 
 		# Calculated outputs
 		self.riskScore = 0.0
 		self.sigmoidRiskScore = 0.5
 		self.recalculate()
+		self.update_daily_goal()
 
 	def recalculate(self):
 		"""Update riskScore and sigmoidRiskScore from current variables."""
@@ -111,23 +134,40 @@ class UnscrollState:
 		)
 		return self.riskScore, self.sigmoidRiskScore
 
+	def update_daily_goal(self):
+		"""Recalculate dailyGoal using calc_daily_goal with all 5 parameters."""
+		self.dailyGoal = float(
+			calc_daily_goal(
+				self.current_day,
+				self.Tstart,
+				self.Tgoal,
+				self.timeBetweenLogins,
+				self.sigmoidRiskScore,
+			)
+		)
+		self.recalculate()
+		return self.dailyGoal
+
 	def set_starting_survey(self, t_start, t_goal):
 		"""Save pre-app Tstart and Tgoal and calculate Day 1 dailyGoal using calc_daily_goal."""
 		self.Tstart = float(t_start)
 		self.Tgoal = float(t_goal)
-		self.dailyGoal = float(calc_daily_goal(self.current_day, self.Tstart, self.Tgoal))
 		self.timeScrolling = 0.0
 		self.cleanScore = 1
 		self.recalculate()
+		self.update_daily_goal()
 
 	def apply_dopamine_survey(self, selections):
-		"""Save checkbox selections and recalculate Dopamine % and risk."""
+		"""Save checkbox selections and recalculate Dopamine %, risk, and recommended dailyGoal."""
 		self.dopamine_selections = list(selections)
 		self.Dopamine = calc_dopamine_from_survey(self.dopamine_selections)
 		self.recalculate()
+		self.update_daily_goal()
 
 	def advance_to_next_day(self):
 		"""Update clean streak based on whether scrolling stayed within dailyGoal, then update dailyGoal for the new day."""
+		self.recalculate()
+		prev_relapse_prob = self.sigmoidRiskScore
 		if self.timeScrolling <= self.dailyGoal:
 			self.cleanScore += 1
 		else:
@@ -136,7 +176,15 @@ class UnscrollState:
 		self.nightScrolling = 0.0
 		self.current_day += 1
 		self.sim_minutes = 8 * 60
-		self.dailyGoal = float(calc_daily_goal(self.current_day, self.Tstart, self.Tgoal))
+		self.dailyGoal = float(
+			calc_daily_goal(
+				self.current_day,
+				self.Tstart,
+				self.Tgoal,
+				self.timeBetweenLogins,
+				prev_relapse_prob,
+			)
+		)
 		self.recalculate()
 
 	def record_instagram_scroll(self, minutes_added, is_night=False):

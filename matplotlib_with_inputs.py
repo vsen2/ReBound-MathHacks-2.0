@@ -10,6 +10,7 @@ from calculations import (
 	DOPAMINE_ITEMS,
 	UnscrollState,
 	format_sim_time,
+	get_daily_goal_curve,
 	get_sigmoid_curve,
 )
 
@@ -21,6 +22,15 @@ state.recalculate()
 
 popup_open = False
 sim_paused = False
+current_chart_tab = 'risk'
+
+
+def safe_set_item_fill(cv, item, fill_color):
+	try:
+		if cv.winfo_exists():
+			cv.itemconfig(item, fill=fill_color)
+	except tk.TclError:
+		pass
 
 
 def draw_rounded_rect(canvas, x1, y1, x2, y2, r=18, **kwargs):
@@ -59,8 +69,8 @@ def make_pill_button(
 	)
 	shape = draw_rounded_rect(cv, 2, 2, width - 2, height - 2, r=radius, fill=fill, outline='')
 	cv.create_text(width // 2, height // 2, text=text, fill=fg, font=font)
-	cv.bind('<Enter>', lambda e: cv.itemconfig(shape, fill=hover_fill))
-	cv.bind('<Leave>', lambda e: cv.itemconfig(shape, fill=fill))
+	cv.bind('<Enter>', lambda e: safe_set_item_fill(cv, shape, hover_fill))
+	cv.bind('<Leave>', lambda e: safe_set_item_fill(cv, shape, fill))
 	cv.bind('<ButtonRelease-1>', lambda e: command())
 	return cv
 
@@ -68,7 +78,7 @@ def make_pill_button(
 # Create the polished plot figure in the background with space on the right for variable inputs
 fig, ax = plt.subplots(figsize=(11, 6), facecolor='#0f172a')
 fig.canvas.manager.set_window_title('Unscroll')
-plt.subplots_adjust(left=0.07, right=0.58, top=0.86, bottom=0.14)
+plt.subplots_adjust(left=0.07, right=0.58, top=0.82, bottom=0.14)
 ax.set_facecolor('#1e293b')
 
 right_card = FancyBboxPatch(
@@ -116,7 +126,7 @@ fig.text(0.65, 0.86, 'Risk Score Variables', fontsize=12, fontweight='bold', col
 clock_text = fig.text(
 	0.65,
 	0.82,
-	f'Day {state.current_day}  •  {format_sim_time(state.sim_minutes)}  (600x)',
+	f'Day {state.current_day}  •  {format_sim_time(state.sim_minutes)}  (1 hr/s)',
 	fontsize=9.5,
 	fontweight='bold',
 	color='#38bdf8',
@@ -182,14 +192,98 @@ def update_graph(_=None):
 	status_text.set_text('')
 	state.recalculate()
 
-	x_new, y_new, x_limit = get_sigmoid_curve(state.riskScore)
-	line_curve.set_data(x_new, y_new)
-	ax.set_xlim(-x_limit, x_limit)
+	if current_chart_tab == 'risk':
+		x_new, y_new, x_limit = get_sigmoid_curve(state.riskScore)
+		line_curve.set_data(x_new, y_new)
+		line_curve.set_color('#38bdf8')
+		line_curve.set_label('Sigmoid Curve')
+		ax.set_xlim(-x_limit, x_limit)
+		ax.set_ylim(-0.05, 1.05)
+		ax.set_title(
+			'Unscroll — Doomscrolling Risk Score (Sigmoid)',
+			fontsize=13,
+			fontweight='bold',
+			color='#f8fafc',
+			pad=12,
+		)
+		ax.set_xlabel('Risk Score (z)', fontsize=11, color='#cbd5e1')
+		ax.set_ylabel('Risk Probability σ(z)', fontsize=11, color='#cbd5e1')
 
-	point_risk.set_data([state.riskScore], [state.sigmoidRiskScore])
-	point_risk.set_label(f'Your Risk: {state.sigmoidRiskScore:.2%} (score={state.riskScore:.2f})')
-	ax.legend(loc='upper left', facecolor='#0f172a', edgecolor='#334155', labelcolor='#f8fafc')
+		point_risk.set_data([state.riskScore], [state.sigmoidRiskScore])
+		point_risk.set_label(f'Your Risk: {state.sigmoidRiskScore:.2%} (score={state.riskScore:.2f})')
+		ax.legend(loc='upper left', facecolor='#0f172a', edgecolor='#334155', labelcolor='#f8fafc')
+	else:
+		days_arr, goals_arr, max_day = get_daily_goal_curve(
+			state.Tstart,
+			state.Tgoal,
+			state.current_day,
+			state.timeBetweenLogins,
+			state.sigmoidRiskScore,
+		)
+		line_curve.set_data(days_arr, goals_arr)
+		line_curve.set_color('#10b981')
+		line_curve.set_label(f'Daily Goal Curve (Target={state.Tgoal:g}m)')
+		ax.set_xlim(0, max_day)
+		y_min = max(0.0, min(state.Tgoal, state.Tstart) * 0.8)
+		y_max = max(state.Tstart, state.Tgoal, state.dailyGoal, float(goals_arr.max())) * 1.1 + 5.0
+		ax.set_ylim(y_min, y_max)
+		ax.set_title(
+			'Unscroll — Daily Goal Progression',
+			fontsize=13,
+			fontweight='bold',
+			color='#f8fafc',
+			pad=12,
+		)
+		ax.set_xlabel('Day (t)', fontsize=11, color='#cbd5e1')
+		ax.set_ylabel('Daily Goal Limit (minutes)', fontsize=11, color='#cbd5e1')
+
+		point_risk.set_data([state.current_day], [state.dailyGoal])
+		point_risk.set_label(f'Day {state.current_day} Goal: {state.dailyGoal:.1f} min')
+		ax.legend(loc='upper right', facecolor='#0f172a', edgecolor='#334155', labelcolor='#f8fafc')
+
 	fig.canvas.draw_idle()
+
+
+# Tab buttons at the top of the chart in matplotlib_with_inputs.py
+tab_risk_ax = fig.add_axes([0.07, 0.90, 0.16, 0.055])
+for sp in tab_risk_ax.spines.values():
+	sp.set_edgecolor('#3b82f6')
+tab_risk_btn = Button(tab_risk_ax, 'Risk Sigmoid Tab', color='#2563eb', hovercolor='#1d4ed8')
+tab_risk_btn.label.set_color('white')
+tab_risk_btn.label.set_fontsize(9)
+tab_risk_btn.label.set_fontweight('bold')
+
+tab_goal_ax = fig.add_axes([0.24, 0.90, 0.16, 0.055])
+for sp in tab_goal_ax.spines.values():
+	sp.set_edgecolor('#10b981')
+tab_goal_btn = Button(tab_goal_ax, 'Daily Goal Tab', color='#1e293b', hovercolor='#059669')
+tab_goal_btn.label.set_color('#cbd5e1')
+tab_goal_btn.label.set_fontsize(9)
+tab_goal_btn.label.set_fontweight('bold')
+
+
+def select_risk_tab(_=None):
+	global current_chart_tab
+	current_chart_tab = 'risk'
+	tab_risk_btn.color = '#2563eb'
+	tab_risk_btn.label.set_color('white')
+	tab_goal_btn.color = '#1e293b'
+	tab_goal_btn.label.set_color('#cbd5e1')
+	update_graph()
+
+
+def select_goal_tab(_=None):
+	global current_chart_tab
+	current_chart_tab = 'goal'
+	tab_goal_btn.color = '#10b981'
+	tab_goal_btn.label.set_color('#06281e')
+	tab_risk_btn.color = '#1e293b'
+	tab_risk_btn.label.set_color('#cbd5e1')
+	update_graph()
+
+
+tab_risk_btn.on_clicked(select_risk_tab)
+tab_goal_btn.on_clicked(select_goal_tab)
 
 
 for tb in text_boxes.values():
@@ -211,6 +305,15 @@ def post_click(event):
 fig.canvas.mpl_connect('button_press_event', post_click)
 
 
+def set_textbox_silent(name, val_str):
+	tb = text_boxes.get(name)
+	if tb is not None:
+		prev = tb.eventson
+		tb.eventson = False
+		tb.set_val(val_str)
+		tb.eventson = prev
+
+
 def open_starting_survey():
 	global popup_open
 	if popup_open:
@@ -228,7 +331,10 @@ def open_starting_survey():
 	popup.configure(bg='#0f172a')
 	popup.resizable(False, False)
 	popup.transient(parent)
-	popup.grab_set()
+	try:
+		popup.grab_set()
+	except tk.TclError:
+		pass
 	popup.lift()
 	popup.focus_force()
 
@@ -263,31 +369,44 @@ def open_starting_survey():
 		entries[field] = entry
 		current_row += 2
 
+	entries['Tstart'].insert(0, str(int(state.Tstart)))
+	entries['Tgoal'].insert(0, str(int(state.Tgoal)))
 	entries['Tstart'].focus_set()
 
 	def on_close():
 		global popup_open
 		popup_open = False
-		popup.destroy()
+		try:
+			popup.grab_release()
+			popup.destroy()
+		except tk.TclError:
+			pass
 
 	popup.protocol('WM_DELETE_WINDOW', on_close)
 
-	def submit():
+	def submit(_=None):
 		global popup_open
 		try:
 			parsed = {field: float(entry.get()) for field, entry in entries.items()}
 		except ValueError:
 			messagebox.showerror('Invalid input', 'Enter a number in each field.', parent=popup)
 			return
-		if parsed['Tgoal'] == 0:
-			messagebox.showerror('Invalid input', 'Goal minutes cannot be 0.', parent=popup)
+		if parsed['Tgoal'] <= 0:
+			messagebox.showerror('Invalid input', 'Goal minutes must be greater than 0.', parent=popup)
 			return
 
 		state.set_starting_survey(parsed['Tstart'], parsed['Tgoal'])
-		text_boxes['dailyGoal'].set_val(f'{state.dailyGoal:.1f}')
+		set_textbox_silent('dailyGoal', f'{state.dailyGoal:.1f}')
 		update_graph()
 		popup_open = False
-		popup.destroy()
+		try:
+			popup.grab_release()
+			popup.destroy()
+		except tk.TclError:
+			pass
+
+	for ent in entries.values():
+		ent.bind('<Return>', submit)
 
 	make_pill_button(
 		popup,
@@ -318,18 +437,21 @@ def open_new_day_popup(_=None):
 
 	if _ is not None:
 		state.advance_to_next_day()
-		text_boxes['dailyGoal'].set_val(f'{state.dailyGoal:.1f}')
-		text_boxes['timeScrolling'].set_val(f'{state.timeScrolling:g}')
-		text_boxes['nightScrolling'].set_val(f'{state.nightScrolling:g}')
+		set_textbox_silent('dailyGoal', f'{state.dailyGoal:.1f}')
+		set_textbox_silent('timeScrolling', f'{state.timeScrolling:g}')
+		set_textbox_silent('nightScrolling', f'{state.nightScrolling:g}')
 		clock_text.set_text(f'Day {state.current_day}  •  {format_sim_time(state.sim_minutes)}  (1 hr/s)')
-		fig.canvas.draw_idle()
+		update_graph()
 
 	popup = tk.Toplevel(parent)
 	popup.title(f'Unscroll - Day {state.current_day} Survey')
 	popup.configure(bg='#0f172a')
 	popup.resizable(False, False)
 	popup.transient(parent)
-	popup.grab_set()
+	try:
+		popup.grab_set()
+	except tk.TclError:
+		pass
 	popup.lift()
 	popup.focus_force()
 
@@ -366,18 +488,27 @@ def open_new_day_popup(_=None):
 	def on_close():
 		global popup_open
 		popup_open = False
-		popup.destroy()
+		try:
+			popup.grab_release()
+			popup.destroy()
+		except tk.TclError:
+			pass
 
 	popup.protocol('WM_DELETE_WINDOW', on_close)
 
-	def submit():
+	def submit(_=None):
 		global popup_open
 		state.apply_dopamine_survey([var.get() for var in check_vars])
-		if 'Dopamine' in text_boxes:
-			text_boxes['Dopamine'].set_val(f'{state.Dopamine:.0f}%')
+		set_textbox_silent('Dopamine', f'{state.Dopamine:.0f}%')
 		update_graph()
 		popup_open = False
-		popup.destroy()
+		try:
+			popup.grab_release()
+			popup.destroy()
+		except tk.TclError:
+			pass
+
+	popup.bind('<Return>', submit)
 
 	make_pill_button(
 		popup,
@@ -451,11 +582,11 @@ def tick_clock():
 		state.sim_minutes += 6
 		if state.sim_minutes >= 1440:
 			state.advance_to_next_day()
-			text_boxes['dailyGoal'].set_val(f'{state.dailyGoal:.1f}')
-			text_boxes['timeScrolling'].set_val(f'{state.timeScrolling:g}')
-			text_boxes['nightScrolling'].set_val(f'{state.nightScrolling:g}')
+			set_textbox_silent('dailyGoal', f'{state.dailyGoal:.1f}')
+			set_textbox_silent('timeScrolling', f'{state.timeScrolling:g}')
+			set_textbox_silent('nightScrolling', f'{state.nightScrolling:g}')
 			clock_text.set_text(f'Day {state.current_day}  •  {format_sim_time(state.sim_minutes)}  (1 hr/s)')
-			fig.canvas.draw_idle()
+			update_graph()
 			open_new_day_popup(None)
 		else:
 			clock_text.set_text(f'Day {state.current_day}  •  {format_sim_time(state.sim_minutes)}  (1 hr/s)')
