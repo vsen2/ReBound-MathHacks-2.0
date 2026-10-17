@@ -32,22 +32,22 @@ Shaugnessy Pump, Ricky Wu, Victor Sen, Kaito Nagawaka
 
 ---
 
-## 🦅 About Rebound
+## About Rebound
 
 **Rebound** is a minimalist anti-doomscrolling Chrome extension designed to help you break free from addictive social media feeds (like TikTok and Instagram). Featuring a gentle pastel aesthetic and high-priority DOM intervention banners, Rebound keeps you mindful of your daily digital limits without getting in your way.
 
 ---
 
-## ✨ Features
+## Features
 
-* **⚡ Instant Site Interception:** Automatically detects when you navigate to TikTok or Instagram.
-* **⏳ Daily Goal Tracking:** Displays live remaining time indicators to keep your scrolling habits in check.
-* **🎨 Aesthetic Minimalist UI:** Custom dark-mode warning overlays with your very own soaring pastel bird logo.
-* **🛡️ High-Priority Injection:** Bypasses complex site wrappers using max `z-index` DOM overlays.
+* **Instant Site Interception:** Automatically detects when you navigate to TikTok or Instagram.
+* **Daily Goal Tracking:** Displays live remaining time indicators to keep your scrolling habits in check.
+* **Aesthetic Minimalist UI:** Custom dark-mode warning overlays with your very own soaring pastel bird logo.
+* **High-Priority Injection:** Bypasses complex site wrappers using max `z-index` DOM overlays.
 
 ---
 
-## 🛠️ Quick Local Setup
+## Quick Local Setup
 
 1. **Download or Clone** this repository to your local machine.
 2. Open Google Chrome and navigate to `chrome://extensions/`.
