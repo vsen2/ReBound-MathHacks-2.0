@@ -3,6 +3,8 @@ import pygetwindow as gw
 
 # Target platform keywords to track
 TARGET_PLATFORMS = ["Instagram", "Tiktok"]
+JSON_FILE = "usage_log.json"
+
 
 def monitor_screen_time(interval=1):
     usage_log = {platform: 0 for platform in TARGET_PLATFORMS}

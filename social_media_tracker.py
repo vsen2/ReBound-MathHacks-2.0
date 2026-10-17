@@ -1,0 +1,58 @@
+import json
+import time
+import pygetwindow as gw
+
+# Target platform keywords to track
+TARGET_PLATFORMS = ["Instagram", "Tiktok"]
+JSON_FILE = "data_storage.json"
+
+
+def load_log(filename=JSON_FILE):
+  """Loads existing usage log if available, otherwise initializes zeroed counts."""
+  log = {platform: 0 for platform in TARGET_PLATFORMS}
+  try:
+    with open(filename, "r") as f:
+      saved_data = json.load(f)
+      log.update(saved_data)
+  except (FileNotFoundError, json.JSONDecodeError):
+    pass
+  return log
+
+
+def save_log(data, filename=JSON_FILE):
+  """Writes the usage log dictionary to a JSON file."""
+  with open(filename, "w") as f:
+    json.dump(data, f, indent=4)
+
+
+def monitor_screen_time(interval=1):
+  usage_log = load_log()
+
+  try:
+    while True:
+      try:
+        active_window = gw.getActiveWindow()
+        if active_window and active_window.title:
+          window_title = active_window.title.lower()
+
+          for platform in TARGET_PLATFORMS:
+            if platform.lower() in window_title:
+              usage_log[platform] += interval
+              print(
+                  f"Logged {interval}s on {platform}. Total:"
+                  f" {usage_log[platform]}s"
+              )
+              save_log(usage_log)  # Save after every update
+      except Exception:
+        # Handle window focus transitions gracefully
+        pass
+
+      time.sleep(interval)
+
+  except KeyboardInterrupt:
+    print("\nStopping monitor. Final data saved.")
+    save_log(usage_log)
+
+
+if __name__ == "__main__":
+  monitor_screen_time(interval=1)
