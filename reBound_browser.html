@@ -7,49 +7,46 @@
 	<link rel="icon" type="image/png" href="logo.png" />
 	<style>
 		:root {
-			/* Unified colors — change these two variables to recolor all sections/graphs and all text */
-			--page-bg: #9ec8f4;          /* Overall page background */
-			--section-bg: #c3f9ebd6;       /* Unified background for all sections, cards, modals, and graphs */
-			--text-color: #2f555e;       /* Unified text color across all sections and graphs */
-
-			/* Accent & border variables */
-			--accent-color: #5b9279;
-			--accent-secondary: #2a6eed;
-			--border-color: #98cede;
-			--subtle-bg: #d6e7cd;
-			--danger-color: #d9534f;
+			/* Palette matched directly to colors_example.png */
+			--bg-ocean: #3a7bbf;
+			--bg-ocean-panel: #4585c7;
+			--bg-slate-teal: #3e6b75;
+			--bg-sage: #5b9279;
+			--bg-cream: #f7f4ec;
+			--bg-mint: #d6e7cd;
+			--periwinkle: #6e98e8;
+			--sky-aqua: #98cede;
+			--butter-yellow: #ffd66b;
+			--border-light: #89b2e8;
+			--text-cream: #f7f4ec;
+			--text-dark-teal: #2f555e;
+			--text-sage: #467861;
+			--coral-alert: #f26d6d;
 		}
 		* {
 			box-sizing: border-box;
 			margin: 0;
 			padding: 0;
 			font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-			color: var(--text-color);
 		}
 		body {
-			background: var(--page-bg);
-			color: var(--text-color);
+			background: var(--bg-ocean);
+			color: var(--text-cream);
 			min-height: 100vh;
 			padding: 22px 30px;
-		}
-		.topbar,
-		.section-card,
-		.chart-card,
-		.modal {
-			background: var(--section-bg);
-			color: var(--text-color);
-			border: 2px solid var(--border-color);
-			border-radius: 24px;
-			box-shadow: 0 8px 20px rgba(31, 68, 110, 0.18);
 		}
 		.topbar {
 			display: flex;
 			align-items: center;
 			justify-content: space-between;
+			background: var(--bg-ocean-panel);
+			border: 2px solid var(--border-light);
+			border-radius: 24px;
 			padding: 14px 24px;
 			margin-bottom: 20px;
 			flex-wrap: wrap;
 			gap: 14px;
+			box-shadow: 0 8px 24px rgba(31, 68, 110, 0.22);
 		}
 		.brand {
 			display: flex;
@@ -60,22 +57,22 @@
 			width: 46px;
 			height: 46px;
 			border-radius: 14px;
-			background: var(--section-bg);
+			background: var(--bg-cream);
 			padding: 3px;
 			object-fit: contain;
 		}
 		.brand h1 {
 			font-size: 1.5rem;
 			font-weight: 800;
-			color: var(--text-color);
+			color: var(--butter-yellow);
 			letter-spacing: -0.01em;
 		}
 		.brand span {
 			font-size: 0.86rem;
-			color: var(--text-color);
-			opacity: 0.85;
+			color: var(--text-cream);
+			opacity: 0.9;
 			display: block;
-			font-weight: 600;
+			font-weight: 500;
 		}
 		.clock-controls {
 			display: flex;
@@ -84,18 +81,16 @@
 			flex-wrap: wrap;
 		}
 		.clock-badge {
-			background: var(--subtle-bg);
-			border: 2px solid var(--border-color);
+			background: var(--bg-slate-teal);
+			border: 2px solid var(--sky-aqua);
 			padding: 8px 18px;
 			border-radius: 999px;
 			font-weight: 700;
-			color: var(--text-color);
+			color: var(--butter-yellow);
 			font-size: 0.95rem;
 		}
 		.pill-btn {
-			background: var(--accent-secondary);
-			color: var(--text-color);
-			border: 2px solid var(--border-color);
+			border: 2px solid transparent;
 			border-radius: 999px;
 			padding: 9px 18px;
 			font-size: 0.9rem;
@@ -108,12 +103,30 @@
 			transform: translateY(-1px);
 			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 		}
-		.btn-secondary {
-			background: var(--subtle-bg);
-			color: var(--text-color);
+		.btn-yellow {
+			background: var(--butter-yellow);
+			color: var(--text-dark-teal);
+		}
+		.btn-sage {
+			background: var(--bg-sage);
+			color: var(--text-cream);
+			border-color: var(--butter-yellow);
+		}
+		.btn-periwinkle {
+			background: var(--periwinkle);
+			color: var(--butter-yellow);
+		}
+		.btn-teal {
+			background: var(--bg-slate-teal);
+			color: var(--text-cream);
+			border-color: var(--bg-cream);
+		}
+		.btn-mint {
+			background: var(--bg-mint);
+			color: var(--text-dark-teal);
 		}
 
-		/* Top Row: reBound Widget + Instagram Simulator */
+		/* Top Row: reBound Widget + Instagram Simulator (styled like the Small Timers cards) */
 		.status-grid {
 			display: grid;
 			grid-template-columns: 1.3fr 1fr;
@@ -123,8 +136,27 @@
 		@media (max-width: 960px) {
 			.status-grid { grid-template-columns: 1fr; }
 		}
-		.section-card {
+		.card-cream {
+			background: var(--bg-cream);
+			color: var(--text-dark-teal);
+			border-radius: 24px;
 			padding: 20px 24px;
+			box-shadow: 0 8px 20px rgba(31, 68, 110, 0.18);
+		}
+		.card-teal {
+			background: var(--bg-slate-teal);
+			color: var(--text-cream);
+			border: 2px solid rgba(247, 244, 236, 0.25);
+			border-radius: 24px;
+			padding: 20px 24px;
+			box-shadow: 0 8px 20px rgba(31, 68, 110, 0.18);
+		}
+		.card-sage {
+			background: var(--bg-sage);
+			color: var(--text-cream);
+			border-radius: 24px;
+			padding: 20px 24px;
+			box-shadow: 0 8px 20px rgba(31, 68, 110, 0.18);
 		}
 		.widget-top {
 			display: flex;
@@ -135,26 +167,26 @@
 		.widget-tag {
 			font-size: 0.8rem;
 			font-weight: 800;
-			color: var(--text-color);
+			color: var(--bg-sage);
 			letter-spacing: 0.07em;
 		}
 		.widget-risk {
 			font-size: 0.9rem;
 			font-weight: 800;
-			background: var(--subtle-bg);
-			color: var(--text-color);
+			background: var(--bg-mint);
+			color: var(--text-dark-teal);
 			padding: 4px 12px;
 			border-radius: 999px;
 		}
 		.streak-title {
 			font-size: 1.7rem;
 			font-weight: 800;
-			color: var(--text-color);
+			color: var(--bg-slate-teal);
 			margin: 4px 0;
 		}
 		.streak-sub {
 			font-size: 0.88rem;
-			color: var(--text-color);
+			color: var(--text-sage);
 			margin-bottom: 12px;
 			font-weight: 600;
 		}
@@ -163,25 +195,25 @@
 			justify-content: space-between;
 			font-weight: 700;
 			font-size: 0.95rem;
-			color: var(--text-color);
+			color: var(--text-dark-teal);
 			margin-bottom: 8px;
 		}
 		.progress-track {
 			width: 100%;
 			height: 15px;
-			background: var(--subtle-bg);
+			background: var(--bg-mint);
 			border-radius: 999px;
 			overflow: hidden;
 		}
 		.progress-fill {
 			height: 100%;
 			width: 5%;
-			background: var(--accent-color);
+			background: var(--bg-sage);
 			border-radius: 999px;
 			transition: width 0.2s, background 0.2s;
 		}
 
-		/* View Switcher Bar */
+		/* View Switcher Bar (styled like the rounded "Shapes" pill bar in colors_example.png) */
 		.view-bar {
 			display: flex;
 			align-items: center;
@@ -193,25 +225,29 @@
 		.tab-group {
 			display: flex;
 			gap: 8px;
-			background: var(--section-bg);
+			background: var(--bg-ocean-panel);
 			padding: 6px;
 			border-radius: 999px;
-			border: 2px solid var(--border-color);
+			border: 2px solid var(--border-light);
 		}
 		.tab-btn {
 			border: none;
 			background: transparent;
-			color: var(--text-color);
+			color: var(--text-cream);
 			padding: 9px 20px;
 			border-radius: 999px;
 			font-weight: 700;
 			font-size: 0.92rem;
 			cursor: pointer;
-			transition: background 0.15s;
+			transition: background 0.15s, color 0.15s;
 		}
 		.tab-btn.active {
-			background: var(--accent-secondary);
-			color: var(--text-color);
+			background: var(--butter-yellow);
+			color: var(--text-dark-teal);
+		}
+		.tab-btn.active-sage {
+			background: var(--bg-mint);
+			color: var(--text-dark-teal);
 		}
 
 		/* Charts Grid */
@@ -228,10 +264,14 @@
 			.charts-grid { grid-template-columns: 1fr; }
 		}
 		.chart-card {
+			background: var(--bg-cream);
+			color: var(--text-dark-teal);
+			border-radius: 24px;
 			padding: 18px 22px;
 			display: flex;
 			flex-direction: column;
 			gap: 12px;
+			box-shadow: 0 8px 20px rgba(31, 68, 110, 0.18);
 		}
 		.chart-header {
 			display: flex;
@@ -243,22 +283,22 @@
 		.chart-header h2 {
 			font-size: 1.12rem;
 			font-weight: 800;
-			color: var(--text-color);
+			color: var(--bg-slate-teal);
 		}
 		.chart-stat {
 			font-size: 0.86rem;
 			font-weight: 800;
-			background: var(--subtle-bg);
-			color: var(--text-color);
+			background: var(--bg-slate-teal);
+			color: var(--butter-yellow);
 			padding: 5px 13px;
 			border-radius: 999px;
 		}
 		canvas.plot-canvas {
 			width: 100%;
 			height: 300px;
-			background: var(--section-bg);
+			background: var(--bg-slate-teal);
 			border-radius: 18px;
-			border: 2px solid var(--border-color);
+			border: 2px solid var(--sky-aqua);
 		}
 
 		/* Inputs Grid */
@@ -275,18 +315,18 @@
 			justify-content: space-between;
 			align-items: center;
 			padding: 7px 0;
-			border-bottom: 1px solid var(--border-color);
+			border-bottom: 1px solid rgba(247, 244, 236, 0.2);
 		}
 		.form-row label {
 			font-size: 0.92rem;
-			color: var(--text-color);
+			color: var(--bg-cream);
 			font-weight: 600;
 		}
 		.form-row input {
 			width: 132px;
-			background: var(--section-bg);
-			border: 2px solid var(--border-color);
-			color: var(--text-color);
+			background: var(--bg-cream);
+			border: 2px solid var(--sky-aqua);
+			color: var(--text-dark-teal);
 			padding: 6px 10px;
 			border-radius: 12px;
 			text-align: right;
@@ -301,7 +341,7 @@
 			flex-wrap: wrap;
 		}
 		.err-msg {
-			color: var(--danger-color);
+			color: var(--butter-yellow);
 			font-size: 0.86rem;
 			font-weight: 700;
 		}
@@ -321,13 +361,18 @@
 			display: flex;
 		}
 		.modal {
+			background: var(--bg-cream);
+			color: var(--text-dark-teal);
+			border: 3px solid var(--butter-yellow);
+			border-radius: 26px;
 			max-width: 520px;
 			width: 100%;
 			padding: 28px;
+			box-shadow: 0 20px 50px rgba(20, 42, 66, 0.45);
 		}
 		.modal h3 {
 			font-size: 1.35rem;
-			color: var(--text-color);
+			color: var(--bg-slate-teal);
 			margin-bottom: 14px;
 		}
 		.modal-field {
@@ -335,7 +380,7 @@
 		}
 		.modal-field label {
 			display: block;
-			color: var(--text-color);
+			color: var(--text-dark-teal);
 			font-weight: 600;
 			margin-bottom: 6px;
 			font-size: 0.95rem;
@@ -344,9 +389,9 @@
 			width: 100%;
 			padding: 10px 12px;
 			border-radius: 12px;
-			border: 2px solid var(--border-color);
-			background: var(--section-bg);
-			color: var(--text-color);
+			border: 2px solid var(--bg-slate-teal);
+			background: #ffffff;
+			color: var(--text-dark-teal);
 			font-size: 1rem;
 			font-weight: 800;
 		}
@@ -355,18 +400,18 @@
 			align-items: flex-start;
 			gap: 10px;
 			margin-bottom: 12px;
-			color: var(--text-color);
+			color: var(--text-dark-teal);
 			font-weight: 600;
 			font-size: 0.95rem;
 			cursor: pointer;
-			background: var(--subtle-bg);
+			background: var(--bg-mint);
 			padding: 10px 14px;
 			border-radius: 14px;
 		}
 		.check-item input {
 			margin-top: 4px;
 			transform: scale(1.2);
-			accent-color: var(--accent-color);
+			accent-color: var(--bg-slate-teal);
 		}
 	</style>
 </head>
@@ -382,15 +427,15 @@
 		</div>
 		<div class="clock-controls">
 			<div class="clock-badge" id="clockBadge">Day 1 • 8:00 AM (1 hr/s)</div>
-			<button class="pill-btn" id="pauseBtn" onclick="togglePause()">⏸ Stop Time</button>
-			<button class="pill-btn btn-secondary" onclick="triggerNextDay()">☀️ Next Day (Survey)</button>
-			<button class="pill-btn btn-secondary" onclick="openStartingSurvey()">📋 Beginning Survey</button>
+			<button class="pill-btn btn-yellow" id="pauseBtn" onclick="togglePause()">⏸ Stop Time</button>
+			<button class="pill-btn btn-sage" onclick="triggerNextDay()">☀️ Next Day (Survey)</button>
+			<button class="pill-btn btn-periwinkle" onclick="openStartingSurvey()">📋 Beginning Survey</button>
 		</div>
 	</header>
 
 	<!-- Widget + Instagram Doomscroll Simulator Row -->
 	<section class="status-grid">
-		<div class="section-card">
+		<div class="card-cream">
 			<div class="widget-top">
 				<span class="widget-tag">REBOUND WIDGET</span>
 				<span class="widget-risk" id="widgetRisk">Risk: 50.0%</span>
@@ -399,23 +444,23 @@
 			<div class="streak-sub" id="widgetStatus">Day 1 • 8:00 AM — Keep avoiding doomscrolling!</div>
 			<div class="scroll-row">
 				<span id="widgetScrolled">Scrolled: 0 min</span>
-				<span id="widgetLimit">Limit: 30.0 min</span>
+				<span id="widgetLimit" style="color: var(--bg-sage)">Limit: 30.0 min</span>
 			</div>
 			<div class="progress-track">
 				<div class="progress-fill" id="widgetBar"></div>
 			</div>
 		</div>
 
-		<div class="section-card" style="display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+		<div class="card-sage" style="display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
 			<div>
-				<div class="widget-tag" style="margin-bottom: 6px;">📸 INSTAGRAM REELS SIMULATOR</div>
-				<p style="font-size: 0.92rem; line-height: 1.4;">
-					Simulating Instagram scrolling adds scroll time and resets your <strong>Clean Streak</strong> to <strong>0</strong> if you go over your recommended limit.
+				<div class="widget-tag" style="color: var(--butter-yellow); margin-bottom: 6px;">📸 INSTAGRAM REELS SIMULATOR</div>
+				<p style="font-size: 0.92rem; color: var(--text-cream); line-height: 1.4;">
+					Simulating Instagram scrolling adds scroll time and immediately resets your <strong>Clean Streak</strong> to <strong>0</strong>.
 				</p>
 			</div>
 			<div style="display: flex; gap: 10px; flex-wrap: wrap;">
-				<button class="pill-btn" onclick="simulateInstagram(5, false)">⬇️ Scroll Reel (+5 min)</button>
-				<button class="pill-btn btn-secondary" onclick="simulateInstagram(15, true)">🌙 Late-Night Scroll (+15 min)</button>
+				<button class="pill-btn btn-yellow" onclick="simulateInstagram(5, false)">⬇️ Scroll Reel (+5 min)</button>
+				<button class="pill-btn btn-teal" onclick="simulateInstagram(15, true)">🌙 Late-Night Scroll (+15 min)</button>
 			</div>
 		</div>
 	</section>
@@ -424,7 +469,7 @@
 	<div class="view-bar">
 		<div class="tab-group">
 			<button class="tab-btn active" id="tabBoth" onclick="setGraphView('both')">📊 Both Graphs at Once</button>
-			<button class="tab-btn" id="tabRisk" onclick="setGraphView('risk')">📈 Risk Curve Tab</button>
+			<button class="tab-btn" id="tabRisk" onclick="setGraphView('risk')">📈 Risk Sigmoid Tab</button>
 			<button class="tab-btn" id="tabGoal" onclick="setGraphView('goal')">🎯 Daily Goal Tab</button>
 		</div>
 	</div>
@@ -433,8 +478,8 @@
 	<section class="charts-grid" id="chartsGrid">
 		<div class="chart-card" id="riskChartCard">
 			<div class="chart-header">
-				<h2>reBound — Doomscrolling Risk</h2>
-				<span class="chart-stat" id="riskChartStat">Risk: 50.0%</span>
+				<h2>reBound — Doomscrolling Risk (Sigmoid)</h2>
+				<span class="chart-stat" id="riskChartStat">Risk: 50.0% (z = 0.00)</span>
 			</div>
 			<canvas class="plot-canvas" id="riskCanvas"></canvas>
 		</div>
@@ -442,7 +487,7 @@
 		<div class="chart-card" id="goalChartCard">
 			<div class="chart-header">
 				<h2>reBound — Daily Goal Progression</h2>
-				<span class="chart-stat" id="goalChartStat">Day 1 Goal: 57.1 min (Target: 30m)</span>
+				<span class="chart-stat" style="background: var(--bg-sage); color: var(--text-cream)" id="goalChartStat">Day 1 Goal: 57.1 min (Target: 30m)</span>
 			</div>
 			<canvas class="plot-canvas" id="goalCanvas"></canvas>
 		</div>
@@ -450,29 +495,29 @@
 
 	<!-- Interactive Variable Inputs for Both Equations -->
 	<section class="inputs-grid">
-		<div class="section-card">
-			<h3 style="margin-bottom: 10px; font-size: 1.08rem;">Risk Score Factors</h3>
-			<div class="form-row"><label>Night Scrolling (min)</label><input id="in_nightScrolling" type="text" value="0" /></div>
-			<div class="form-row"><label>Stress / Psych Level (0-1)</label><input id="in_psychState" type="text" value="0" /></div>
-			<div class="form-row"><label>Total Scrolling Today (min)</label><input id="in_timeScrolling" type="text" value="0" /></div>
-			<div class="form-row"><label>Daily Limit (min)</label><input id="in_dailyGoal" type="text" value="30" /></div>
-			<div class="form-row"><label>Time Between Logins (min)</label><input id="in_timeBetweenLogins" type="text" value="0" /></div>
-			<div class="form-row"><label>Healthy Dopamine (%)</label><input id="in_Dopamine" type="text" value="50%" /></div>
+		<div class="card-teal">
+			<h3 style="margin-bottom: 10px; font-size: 1.08rem; color: var(--butter-yellow);">Risk Score Variables (calc_risk)</h3>
+			<div class="form-row"><label>nightScrolling (min)</label><input id="in_nightScrolling" type="text" value="0" /></div>
+			<div class="form-row"><label>psychState (0-1)</label><input id="in_psychState" type="text" value="0" /></div>
+			<div class="form-row"><label>timeScrolling (min)</label><input id="in_timeScrolling" type="text" value="0" /></div>
+			<div class="form-row"><label>dailyGoal (min)</label><input id="in_dailyGoal" type="text" value="30" /></div>
+			<div class="form-row"><label>timeBetweenLogins (min)</label><input id="in_timeBetweenLogins" type="text" value="0" /></div>
+			<div class="form-row"><label>Dopamine (%)</label><input id="in_Dopamine" type="text" value="50%" /></div>
 			<div class="card-actions">
-				<button class="pill-btn" onclick="applyRiskInputs()">Update Risk</button>
+				<button class="pill-btn btn-yellow" onclick="applyRiskInputs()">Update Risk</button>
 				<span class="err-msg" id="riskErr"></span>
 			</div>
 		</div>
 
-		<div class="section-card">
-			<h3 style="margin-bottom: 10px; font-size: 1.08rem;">Daily Goal Settings</h3>
-			<div class="form-row"><label>Current Day</label><input id="goal_day" type="text" value="1" /></div>
-			<div class="form-row"><label>Starting Time (min)</label><input id="goal_Tstart" type="text" value="60" /></div>
-			<div class="form-row"><label>Target Goal (min)</label><input id="goal_Tgoal" type="text" value="30" /></div>
-			<div class="form-row"><label>Time Between Logins (min)</label><input id="goal_timeBetweenLogins" type="text" value="0" /></div>
-			<div class="form-row"><label>Relapse Risk (0-1)</label><input id="goal_relapseProbability" type="text" value="0.500" /></div>
+		<div class="card-sage">
+			<h3 style="margin-bottom: 10px; font-size: 1.08rem; color: var(--butter-yellow);">Daily Goal Parameters (calc_daily_goal)</h3>
+			<div class="form-row"><label>day (t)</label><input id="goal_day" type="text" value="1" /></div>
+			<div class="form-row"><label>Tstart (min)</label><input id="goal_Tstart" type="text" value="60" /></div>
+			<div class="form-row"><label>Tgoal (min)</label><input id="goal_Tgoal" type="text" value="30" /></div>
+			<div class="form-row"><label>timeBetweenLogins (min)</label><input id="goal_timeBetweenLogins" type="text" value="0" /></div>
+			<div class="form-row"><label>relapseProbability (0-1)</label><input id="goal_relapseProbability" type="text" value="0.500" /></div>
 			<div class="card-actions">
-				<button class="pill-btn" onclick="applyGoalInputs()">Update Daily Goal</button>
+				<button class="pill-btn btn-yellow" onclick="applyGoalInputs()">Update Daily Goal</button>
 				<span class="err-msg" id="goalErr"></span>
 			</div>
 		</div>
@@ -483,14 +528,14 @@
 		<div class="modal">
 			<h3>reBound — Starting Survey</h3>
 			<div class="modal-field">
-				<label>How many minutes a day do you currently spend doomscrolling?</label>
+				<label>How many minutes a day do you currently spend doomscrolling? (Tstart)</label>
 				<input type="number" id="survey_Tstart" value="60" min="1" />
 			</div>
 			<div class="modal-field">
-				<label>How many minutes a day do you want to get your doomscrolling down to?</label>
+				<label>How many minutes a day do you want to get your doomscrolling down to? (Tgoal)</label>
 				<input type="number" id="survey_Tgoal" value="30" min="1" />
 			</div>
-			<button class="pill-btn" onclick="submitStartingSurvey()">Continue</button>
+			<button class="pill-btn btn-teal" onclick="submitStartingSurvey()">Continue</button>
 		</div>
 	</div>
 
@@ -503,7 +548,7 @@
 			<label class="check-item"><input type="checkbox" class="dop-check" data-pts="25" /> <span>I spent time outside in natural sunlight or exercised yesterday.</span></label>
 			<label class="check-item"><input type="checkbox" class="dop-check" data-pts="25" /> <span>I engaged in an offline, deep-focus hobby (e.g., reading a physical book, playing an instrument, sketching).</span></label>
 			<div style="margin-top: 16px;">
-				<button class="pill-btn" onclick="submitNewDaySurvey()">Continue</button>
+				<button class="pill-btn btn-sage" onclick="submitNewDaySurvey()">Continue</button>
 			</div>
 		</div>
 	</div>
@@ -594,22 +639,9 @@
 			document.getElementById('goal_relapseProbability').value = state.sigmoidRiskScore.toFixed(3);
 		}
 
-		function getThemeColors() {
-			const cs = getComputedStyle(document.documentElement);
-			return {
-				sectionBg: cs.getPropertyValue('--section-bg').trim() || '#f7f4ec',
-				text: cs.getPropertyValue('--text-color').trim() || '#2f555e',
-				accent: cs.getPropertyValue('--accent-color').trim() || '#5b9279',
-				accentSec: cs.getPropertyValue('--accent-secondary').trim() || '#ffd66b',
-				border: cs.getPropertyValue('--border-color').trim() || '#98cede',
-				danger: cs.getPropertyValue('--danger-color').trim() || '#d9534f'
-			};
-		}
-
 		function drawRiskChart() {
 			const canvas = document.getElementById('riskCanvas');
 			if (!canvas || canvas.offsetParent === null) return;
-			const colors = getThemeColors();
 			const dpr = window.devicePixelRatio || 1;
 			const rect = canvas.getBoundingClientRect();
 			canvas.width = rect.width * dpr;
@@ -621,32 +653,31 @@
 			const pad = { l: 52, r: 24, t: 24, b: 38 };
 			const pw = W - pad.l - pad.r, ph = H - pad.t - pad.b;
 
-			ctx.fillStyle = colors.sectionBg;
-			ctx.fillRect(0, 0, W, H);
+			ctx.clearRect(0, 0, W, H);
 			const xLim = Math.max(10.0, Math.abs(state.riskScore) + 2.0);
 			const xToPx = (x) => pad.l + ((x + xLim) / (2 * xLim)) * pw;
 			const yToPx = (y) => pad.t + (1 - (y + 0.05) / 1.1) * ph;
 
-			// Grid
-			ctx.strokeStyle = colors.border;
+			// Grid (colors_example palette)
+			ctx.strokeStyle = 'rgba(214, 231, 205, 0.25)';
 			ctx.lineWidth = 1;
 			ctx.setLineDash([4, 4]);
 			for (let yv = 0; yv <= 1.0; yv += 0.25) {
 				const py = yToPx(yv);
 				ctx.beginPath(); ctx.moveTo(pad.l, py); ctx.lineTo(W - pad.r, py); ctx.stroke();
-				ctx.fillStyle = colors.text; ctx.font = '11px Segoe UI'; ctx.textAlign = 'right';
+				ctx.fillStyle = '#f7f4ec'; ctx.font = '11px Segoe UI'; ctx.textAlign = 'right';
 				ctx.fillText(yv.toFixed(2), pad.l - 8, py + 4);
 			}
 			for (let xv = -Math.floor(xLim); xv <= Math.floor(xLim); xv += Math.max(2, Math.floor(xLim / 4))) {
 				const px = xToPx(xv);
 				ctx.beginPath(); ctx.moveTo(px, pad.t); ctx.lineTo(px, H - pad.b); ctx.stroke();
-				ctx.fillStyle = colors.text; ctx.font = '11px Segoe UI'; ctx.textAlign = 'center';
+				ctx.fillStyle = '#f7f4ec'; ctx.font = '11px Segoe UI'; ctx.textAlign = 'center';
 				ctx.fillText(xv, px, H - pad.b + 16);
 			}
 			ctx.setLineDash([]);
 
-			// Sigmoid curve
-			ctx.strokeStyle = colors.accent;
+			// Sigmoid curve (sky aqua #98cede)
+			ctx.strokeStyle = '#98cede';
 			ctx.lineWidth = 3.0;
 			ctx.beginPath();
 			const N = 200;
@@ -658,27 +689,26 @@
 			}
 			ctx.stroke();
 
-			// Current Risk point
+			// Current Risk point (butter yellow #ffd66b)
 			const rx = xToPx(state.riskScore), ry = yToPx(state.sigmoidRiskScore);
-			ctx.fillStyle = colors.accentSec;
+			ctx.fillStyle = '#ffd66b';
 			ctx.beginPath();
 			ctx.arc(rx, ry, 7, 0, Math.PI * 2);
 			ctx.fill();
-			ctx.strokeStyle = colors.text;
+			ctx.strokeStyle = '#f7f4ec';
 			ctx.lineWidth = 2;
 			ctx.stroke();
 
 			// Axis label
-			ctx.fillStyle = colors.text;
+			ctx.fillStyle = '#d6e7cd';
 			ctx.font = 'bold 11px Segoe UI';
 			ctx.textAlign = 'center';
-			ctx.fillText('Risk Score', pad.l + pw / 2, H - 6);
+			ctx.fillText('Risk Score (z)', pad.l + pw / 2, H - 6);
 		}
 
 		function drawGoalChart() {
 			const canvas = document.getElementById('goalCanvas');
 			if (!canvas || canvas.offsetParent === null) return;
-			const colors = getThemeColors();
 			const dpr = window.devicePixelRatio || 1;
 			const rect = canvas.getBoundingClientRect();
 			canvas.width = rect.width * dpr;
@@ -690,8 +720,7 @@
 			const pad = { l: 52, r: 24, t: 24, b: 38 };
 			const pw = W - pad.l - pad.r, ph = H - pad.t - pad.b;
 
-			ctx.fillStyle = colors.sectionBg;
-			ctx.fillRect(0, 0, W, H);
+			ctx.clearRect(0, 0, W, H);
 			const maxDay = Math.max(30, state.current_day + 5);
 			const N = 200;
 			const pts = [];
@@ -709,32 +738,32 @@
 			const yToPx = (g) => pad.t + (1 - (g - yMin) / Math.max(1, yMax - yMin)) * ph;
 
 			// Grid
-			ctx.strokeStyle = colors.border;
+			ctx.strokeStyle = 'rgba(214, 231, 205, 0.25)';
 			ctx.lineWidth = 1;
 			ctx.setLineDash([4, 4]);
 			for (let i = 0; i <= 4; i++) {
 				const gv = yMin + ((yMax - yMin) * i) / 4;
 				const py = yToPx(gv);
 				ctx.beginPath(); ctx.moveTo(pad.l, py); ctx.lineTo(W - pad.r, py); ctx.stroke();
-				ctx.fillStyle = colors.text; ctx.font = '11px Segoe UI'; ctx.textAlign = 'right';
+				ctx.fillStyle = '#f7f4ec'; ctx.font = '11px Segoe UI'; ctx.textAlign = 'right';
 				ctx.fillText(Math.round(gv) + 'm', pad.l - 8, py + 4);
 			}
 			for (let d = 0; d <= maxDay; d += 5) {
 				const px = xToPx(d);
 				ctx.beginPath(); ctx.moveTo(px, pad.t); ctx.lineTo(px, H - pad.b); ctx.stroke();
-				ctx.fillStyle = colors.text; ctx.font = '11px Segoe UI'; ctx.textAlign = 'center';
+				ctx.fillStyle = '#f7f4ec'; ctx.font = '11px Segoe UI'; ctx.textAlign = 'center';
 				ctx.fillText(d, px, H - pad.b + 16);
 			}
 
-			// Target line
+			// Target line (Tgoal in sky aqua)
 			const ty = yToPx(state.Tgoal);
-			ctx.strokeStyle = colors.border;
+			ctx.strokeStyle = '#98cede';
 			ctx.lineWidth = 1.8;
 			ctx.beginPath(); ctx.moveTo(pad.l, ty); ctx.lineTo(W - pad.r, ty); ctx.stroke();
 			ctx.setLineDash([]);
 
-			// Daily Goal Curve
-			ctx.strokeStyle = colors.accent;
+			// Daily Goal Curve (soft mint #d6e7cd)
+			ctx.strokeStyle = '#d6e7cd';
 			ctx.lineWidth = 3.0;
 			ctx.beginPath();
 			pts.forEach((p, idx) => {
@@ -743,25 +772,24 @@
 			});
 			ctx.stroke();
 
-			// Current Day Point
+			// Current Day Point (butter yellow #ffd66b)
 			const cx = xToPx(state.current_day), cy = yToPx(state.dailyGoal);
-			ctx.fillStyle = colors.accentSec;
+			ctx.fillStyle = '#ffd66b';
 			ctx.beginPath();
 			ctx.arc(cx, cy, 7, 0, Math.PI * 2);
 			ctx.fill();
-			ctx.strokeStyle = colors.text;
+			ctx.strokeStyle = '#f7f4ec';
 			ctx.lineWidth = 2;
 			ctx.stroke();
 
-			ctx.fillStyle = colors.text;
+			ctx.fillStyle = '#d6e7cd';
 			ctx.font = 'bold 11px Segoe UI';
 			ctx.textAlign = 'center';
-			ctx.fillText('Day', pad.l + pw / 2, H - 6);
+			ctx.fillText('Day (t)', pad.l + pw / 2, H - 6);
 		}
 
 		function refreshUI(redrawCharts = true) {
 			recalculateRisk();
-			const colors = getThemeColors();
 			const timeStr = formatSimTime(state.sim_minutes);
 			document.getElementById('clockBadge').textContent =
 				`Day ${state.current_day} • ${timeStr} (${state.paused ? 'Paused' : '1 hr/s'})`;
@@ -771,11 +799,11 @@
 			const statusEl = document.getElementById('widgetStatus');
 			if (state.cleanScore > 0) {
 				streakEl.textContent = `Clean Streak: ${state.cleanScore} 🔥`;
-				streakEl.style.color = colors.text;
+				streakEl.style.color = '#3e6b75';
 				statusEl.textContent = `Day ${state.current_day} • ${timeStr} — Keep avoiding doomscrolling!`;
 			} else {
 				streakEl.textContent = 'Clean Streak: 0 ⚠️';
-				streakEl.style.color = colors.danger;
+				streakEl.style.color = '#d9534f';
 				statusEl.textContent = `Day ${state.current_day} • ${timeStr} — Clean streak reset!`;
 			}
 			const effectiveScrolled = Math.max(state.timeScrolling, state.nightScrolling);
@@ -785,10 +813,10 @@
 			const ratio = state.dailyGoal > 0 ? Math.min(1, Math.max(0.04, effectiveScrolled / state.dailyGoal)) : 1;
 			const bar = document.getElementById('widgetBar');
 			bar.style.width = `${ratio * 100}%`;
-			bar.style.background = effectiveScrolled <= state.dailyGoal ? colors.accent : colors.danger;
+			bar.style.background = effectiveScrolled <= state.dailyGoal ? '#5b9279' : '#f26d6d';
 
 			document.getElementById('riskChartStat').textContent =
-				`Risk: ${(state.sigmoidRiskScore * 100).toFixed(1)}%`;
+				`Risk: ${(state.sigmoidRiskScore * 100).toFixed(1)}% (z = ${state.riskScore.toFixed(2)})`;
 			document.getElementById('goalChartStat').textContent =
 				`Day ${state.current_day} Goal: ${state.dailyGoal.toFixed(1)} min (Target: ${state.Tgoal.toFixed(0)}m)`;
 
@@ -806,7 +834,7 @@
 
 			document.getElementById('tabBoth').className = 'tab-btn' + (mode === 'both' ? ' active' : '');
 			document.getElementById('tabRisk').className = 'tab-btn' + (mode === 'risk' ? ' active' : '');
-			document.getElementById('tabGoal').className = 'tab-btn' + (mode === 'goal' ? ' active' : '');
+			document.getElementById('tabGoal').className = 'tab-btn' + (mode === 'goal' ? ' active-sage' : '');
 
 			if (mode === 'both') {
 				grid.classList.remove('single-col');
@@ -834,7 +862,7 @@
 
 			if ([ns, ps, ts, dg, tbl, dop].some(isNaN) || dg <= 0) {
 				if (syncBoxes) {
-					document.getElementById('riskErr').textContent = 'Enter valid numbers (Daily Limit > 0).';
+					document.getElementById('riskErr').textContent = 'Enter valid numbers (dailyGoal > 0).';
 				}
 				return;
 			}
@@ -867,7 +895,7 @@
 
 			if ([d, ts, tg, tbl, rp].some(isNaN) || tg <= 0) {
 				if (syncBoxes) {
-					document.getElementById('goalErr').textContent = 'Enter valid numbers (Target Goal > 0).';
+					document.getElementById('goalErr').textContent = 'Enter valid numbers (Tgoal > 0).';
 				}
 				return;
 			}
@@ -902,7 +930,7 @@
 			state.paused = !state.paused;
 			const btn = document.getElementById('pauseBtn');
 			btn.textContent = state.paused ? '▶ Start Time' : '⏸ Stop Time';
-			btn.className = 'pill-btn' + (state.paused ? ' btn-secondary' : '');
+			btn.className = 'pill-btn ' + (state.paused ? 'btn-mint' : 'btn-yellow');
 			refreshUI(false);
 		}
 

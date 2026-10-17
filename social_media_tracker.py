@@ -4,7 +4,7 @@ import pygetwindow as gw
 
 # Target platform keywords to track
 TARGET_PLATFORMS = ["Instagram", "Tiktok"]
-JSON_FILE = "data_storage.json"
+JSON_FILE = "usage_log.json"
 
 
 def load_log(filename=JSON_FILE):
