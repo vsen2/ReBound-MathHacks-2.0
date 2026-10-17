@@ -1,12 +1,10 @@
-import tkinter as tk
-from tkinter import messagebox
-
 import matplotlib
-
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch
-from matplotlib.widgets import Button, TextBox
+from matplotlib.widgets import TextBox, Button
+import tkinter as tk
+from tkinter import messagebox
 
 from calculations import (
 	DOPAMINE_ITEMS,

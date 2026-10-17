@@ -1,12 +1,10 @@
 import os
 import tkinter as tk
 from tkinter import messagebox
-
 import matplotlib
-
 matplotlib.use('TkAgg')
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 from calculations import (
 	DOPAMINE_ITEMS,
@@ -33,18 +31,18 @@ def load_logo_photo(target_size=72):
 		return None
 	try:
 		from PIL import Image, ImageTk
-	except ModuleNotFoundError as error:
-		if error.name not in {'PIL', 'PIL.Image', 'PIL.ImageTk'}:
-			raise
-		raw = tk.PhotoImage(file=LOGO_PATH)
-		sx = max(1, round(raw.width() / target_size))
-		sy = max(1, round(raw.height() / target_size))
-		return raw.subsample(sx, sy)
-
-	img = Image.open(LOGO_PATH).convert('RGBA')
-	resample = getattr(Image, 'Resampling', Image).LANCZOS
-	img = img.resize((target_size, target_size), resample)
-	return ImageTk.PhotoImage(img)
+		img = Image.open(LOGO_PATH).convert('RGBA')
+		resample = getattr(Image, 'Resampling', Image).LANCZOS
+		img = img.resize((target_size, target_size), resample)
+		return ImageTk.PhotoImage(img)
+	except Exception:
+		try:
+			raw = tk.PhotoImage(file=LOGO_PATH)
+			sx = max(1, round(raw.width() / target_size))
+			sy = max(1, round(raw.height() / target_size))
+			return raw.subsample(sx, sy)
+		except Exception:
+			return None
 
 
 def safe_set_item_fill(cv, item, fill_color):
