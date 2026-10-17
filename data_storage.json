@@ -1,2 +1,12 @@
 {
+    "Instagram": 28,
+    "Tiktok": 5,
+    "initial_goal": 30,
+    "current_scrolling_hours": 60,
+    "current_scrolling_min": 60,
+    "craving": 0,
+    "withdrawal": 0,
+    "fomo": 0,
+    "stress": 0,
+    "psychState": 0.0
 }
