@@ -1,5 +1,5 @@
 # ReBound
-Adaptive Social Media Relapse Model 
+Rebound is an Adaptive Social Media Relapse Model 
 
 It is close to impossible to simply quit a bad addiction ‘cold turkey’, our application gives a personalized and structured timeline for a realistic ease off of an addiction 
 
