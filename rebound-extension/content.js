@@ -28,7 +28,52 @@ const frictionMessages = [
   }
 ];
 
-// 1. listener to background.js
+// Helper functions
+function formatTime(totalSeconds) {
+  const mins = Math.floor(totalSeconds / 60);
+  const secs = totalSeconds % 60;
+  return `${mins}m ${secs < 10 ? '0' : ''}${secs}s`;
+}
+
+function formatMinutes(totalMinutes) {
+  const mins = Math.floor(totalMinutes);
+  const secs = Math.round((totalMinutes - mins) * 60);
+  if (secs === 60) {
+    return `${mins + 1}m 0s`;
+  }
+  return `${mins}m ${secs}s`;
+}
+
+function minutesToSeconds(minutes) {
+  return Math.floor(minutes * 60);
+}
+
+function getSafeExtensionUrl(path) {
+  try {
+    if (chrome?.runtime?.id) {
+      return chrome.runtime.getURL(path);
+    }
+  } catch (e) {
+    console.warn("[Rebound] Extension context invalidated. Cleaning up.");
+    if (socket) socket.close();
+  }
+  return "";
+}
+
+// 1. Core check logic to determine whether to block or show banner
+function checkAndApplyBlocker() {
+  const hostname = window.location.hostname;
+  const isTargetSite = hostname.includes("instagram.com") || hostname.includes("tiktok.com");
+  const isOverLimit = currentSecondsSpent == minutesToSeconds(dailyGoalMinutes);
+
+  if (isTargetSite && isOverLimit) {
+    showReboundBlocker(hostname);
+  } else {
+    updateTopBanner();
+  }
+}
+
+// 2. Message listener updates state and re-evaluates blocker status
 chrome.runtime.onMessage.addListener((message) => {
   if (message.type === "UPDATE_UI" && message.data) {
     const data = message.data;
@@ -40,18 +85,11 @@ chrome.runtime.onMessage.addListener((message) => {
       dailyGoalMinutes = data.daily_limit;
     }
 
-    updateTopBanner();
+    checkAndApplyBlocker();
   }
 });
 
-// 2. Format total seconds into a clean "Xm Ys" format
-function formatTime(totalSeconds) {
-  const mins = Math.floor(totalSeconds / 60);
-  const secs = totalSeconds % 60;
-  return `${mins}m ${secs < 10 ? '0' : ''}${secs}s`;
-}
-
-// 3. Create or update the persistent top-right live counter banner
+// 3. Persistent top-right live counter banner
 function updateTopBanner() {
   let banner = document.getElementById("rebound-top-banner");
 
@@ -85,7 +123,7 @@ function updateTopBanner() {
 
   banner.innerHTML = `
     ${logoHtml}
-    <span>Time Spent: <strong style="color: #7DD3FC; font-variant-numeric: tabular-nums;">${formatTime(currentSecondsSpent)}</strong> / <span style="color: #FDE68A;">${dailyGoalMinutes}m limit</span></span>
+    <span>Time Spent: <strong style="color: #7DD3FC; font-variant-numeric: tabular-nums;">${formatTime(currentSecondsSpent)}</strong> / <span style="color: #FDE68A;">${formatMinutes(dailyGoalMinutes)} limit</span></span>
   `;
 }
 
@@ -97,7 +135,7 @@ function showReboundBlocker(domain) {
   requiredClicks = Math.max(1, Math.round(relapseProb * 20));
   currentClicks = 0;
 
-  const logoUrl = chrome.runtime.getURL("logo.png");
+  const logoUrl = getSafeExtensionUrl("logo.png");
 
   const overlay = document.createElement("div");
   overlay.id = "rebound-blocker";
@@ -226,32 +264,9 @@ function showReboundBlocker(domain) {
   });
 }
 
-function initReboundBlocker() {
-  // Connect to Python WebSocket server
-  connectWebSocket();
-
-  const hostname = window.location.hostname;
-  if (hostname.includes("instagram.com") || hostname.includes("tiktok.com")) {
-    showReboundBlocker(hostname);
-  } else {
-    updateTopBanner();
-  }
-}
-
+// 5. Initial Execution
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initReboundBlocker);
+  document.addEventListener("DOMContentLoaded", checkAndApplyBlocker);
 } else {
-  initReboundBlocker();
-}
-
-function getSafeExtensionUrl(path) {
-  try {
-    if (chrome?.runtime?.id) {
-      return chrome.runtime.getURL(path);
-    }
-  } catch (e) {
-    console.warn("[Rebound] Extension context invalidated. Cleaning up.");
-    if (socket) socket.close();
-  }
-  return ""; // Fallback empty string if context is dead
+  checkAndApplyBlocker();
 }
