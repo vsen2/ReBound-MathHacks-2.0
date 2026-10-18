@@ -1,54 +1,22 @@
 import json
-import os
 import sys
 import webbrowser
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
-from pathlib import Path
 
-BASE_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
-STORAGE_FILE = BASE_DIR / 'data_storage.json'
+from commands import (
+	BASE_DIR,
+	STORAGE_FILE,
+	compute_all_metrics,
+	generate_ai_suggestions,
+	read_storage,
+	write_storage,
+)
+
 PORT = 8765
 
 
-def read_storage():
-	if STORAGE_FILE.exists():
-		try:
-			with open(STORAGE_FILE, 'r', encoding='utf-8') as f:
-				return json.load(f)
-		except Exception:
-			pass
-	return {
-		'Instagram': 0,
-		'Tiktok': 0,
-		'Tstart': 60.0,
-		'Tgoal': 30.0,
-		'initial_goal': 30.0,
-		'current_scrolling_min': 60.0,
-		'nightScrolling': 0.0,
-		'craving': 0.0,
-		'withdrawal': 0.0,
-		'fomo': 0.0,
-		'stress': 0.0,
-		'psychState': 0.0,
-		'timeScrolling': 0.0,
-		'dailyGoal': 30.0,
-		'timeBetweenLogins': 0.0,
-		'Dopamine': 50.0,
-		'cleanScore': 1,
-		'current_day': 1,
-		'sim_minutes': 480,
-		'riskScore': 0.0,
-		'sigmoidRiskScore': 0.5,
-	}
-
-
-def write_storage(payload):
-	data = read_storage()
-	if isinstance(payload, dict):
-		data.update(payload)
-	with open(STORAGE_FILE, 'w', encoding='utf-8') as f:
-		json.dump(data, f, indent=4)
-	return data
+class ReusableThreadingHTTPServer(ThreadingHTTPServer):
+	allow_reuse_address = True
 
 
 class ReBoundHandler(SimpleHTTPRequestHandler):
@@ -61,37 +29,53 @@ class ReBoundHandler(SimpleHTTPRequestHandler):
 		self.send_header('Access-Control-Allow-Headers', 'Content-Type')
 		super().end_headers()
 
+	def _send_json(self, data, status=200):
+		body = json.dumps(data, indent=4).encode('utf-8')
+		self.send_response(status)
+		self.send_header('Content-Type', 'application/json')
+		self.send_header('Content-Length', str(len(body)))
+		self.end_headers()
+		self.wfile.write(body)
+
+	def _read_json_body(self):
+		length = int(self.headers.get('Content-Length', '0'))
+		raw = self.rfile.read(length).decode('utf-8') if length > 0 else '{}'
+		try:
+			return json.loads(raw)
+		except Exception:
+			return {}
+
 	def do_OPTIONS(self):
 		self.send_response(204)
 		self.end_headers()
 
 	def do_GET(self):
 		if self.path.startswith('/api/data_storage'):
-			data = read_storage()
-			body = json.dumps(data, indent=4).encode('utf-8')
-			self.send_response(200)
-			self.send_header('Content-Type', 'application/json')
-			self.send_header('Content-Length', str(len(body)))
-			self.end_headers()
-			self.wfile.write(body)
+			self._send_json(read_storage())
+			return
+		if self.path.startswith('/api/calculate'):
+			self._send_json(compute_all_metrics())
+			return
+		if self.path.startswith('/api/ai_suggest'):
+			self._send_json(generate_ai_suggestions())
 			return
 		super().do_GET()
 
 	def do_POST(self):
 		if self.path.startswith('/api/data_storage'):
-			length = int(self.headers.get('Content-Length', '0'))
-			raw = self.rfile.read(length).decode('utf-8') if length > 0 else '{}'
-			try:
-				payload = json.loads(raw)
-			except Exception:
-				payload = {}
+			payload = self._read_json_body()
 			updated = write_storage(payload)
-			body = json.dumps(updated, indent=4).encode('utf-8')
-			self.send_response(200)
-			self.send_header('Content-Type', 'application/json')
-			self.send_header('Content-Length', str(len(body)))
-			self.end_headers()
-			self.wfile.write(body)
+			self._send_json(updated)
+			return
+		if self.path.startswith('/api/calculate'):
+			payload = self._read_json_body()
+			result = compute_all_metrics(payload)
+			self._send_json(result)
+			return
+		if self.path.startswith('/api/ai_suggest'):
+			payload = self._read_json_body()
+			result = generate_ai_suggestions(payload)
+			self._send_json(result)
 			return
 		self.send_response(404)
 		self.end_headers()
@@ -103,7 +87,7 @@ class ReBoundHandler(SimpleHTTPRequestHandler):
 def launch_rebound_browser(open_browser=True):
 	"""Serve and open the reBound browser application with live data_storage.json syncing."""
 	url = f'http://127.0.0.1:{PORT}/reBound_browser.html'
-	server = ThreadingHTTPServer(('127.0.0.1', PORT), ReBoundHandler)
+	server = ReusableThreadingHTTPServer(('127.0.0.1', PORT), ReBoundHandler)
 	print(f'Launching reBound Browser App at {url} (syncing with {STORAGE_FILE.name})')
 	if open_browser:
 		webbrowser.open(url)
