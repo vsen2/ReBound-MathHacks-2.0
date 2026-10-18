@@ -430,7 +430,7 @@
 
 		.goal-values-grid {
 			display: grid;
-			grid-template-columns: repeat(2, minmax(0, 1fr));
+			grid-template-columns: repeat(3, minmax(0, 1fr));
 			gap: 14px;
 		}
 
@@ -475,11 +475,23 @@
 			margin-bottom: 6px;
 		}
 
+		.goal-value-note {
+			margin-top: 6px;
+			color: var(--muted-text);
+			font-size: 0.78rem;
+		}
+
 		.goal-value-number {
 			font-size: 2rem;
 			font-weight: 800;
 			line-height: 1.1;
 			color: var(--accent-secondary);
+		}
+
+		@media (max-width: 960px) {
+			.goal-values-grid {
+				grid-template-columns: 1fr;
+			}
 		}
 
 		.goal-value-primary .goal-value-number {
@@ -764,7 +776,7 @@
 	<!-- Daily Goal Values and Calculation Graphs View Bar -->
 	<div class="view-bar">
 		<div class="tab-group">
-			<button class="tab-btn active" id="tabValues" onclick="setGraphView('values')">🎯 Daily Goal &amp; Relapse Probability</button>
+			<button class="tab-btn active" id="tabValues" onclick="setGraphView('values')">🎯 Daily Goal, Relapse &amp; Severity</button>
 			<button class="tab-btn" id="tabGraphs" onclick="setGraphView('graphs')">📊 Calculation Graphs</button>
 		</div>
 	</div>
@@ -776,6 +788,7 @@
 		<div class="goal-values-grid">
 			<div class="goal-value goal-value-primary"><span class="goal-value-label">Today's Daily Limit</span><span class="goal-value-number" id="goalValueDaily">70.5 min</span></div>
 			<div class="goal-value"><span class="goal-value-label">Relapse probability</span><span class="goal-value-number" id="goalValueRelapse">6.0%</span></div>
+			<div class="goal-value"><span class="goal-value-label">15-day addiction severity</span><span class="goal-value-number" id="goalValueAddictionSeverity">—</span><span class="goal-value-note">Recency weighted · 0–100%</span></div>
 		</div>
 	</section>
 
@@ -876,6 +889,8 @@
 		const CALCULATE_API_URL = 'http://127.0.0.1:8765/api/calculate';
 		const AI_SUGGEST_API_URL = 'http://127.0.0.1:8765/api/ai_suggest';
 		const NO_SCREENS_BEFORE_BED_PTS = 20;
+		const ADDICTION_HISTORY_DAYS = 15;
+		const ADDICTION_SEVERITY_MAX_MINUTES = 4500;
 
 		const state = {
 			prevNightScrolling: 0.0,
@@ -899,6 +914,8 @@
 			current_day: 1,
 			riskScore: 0.0,
 			sigmoidRiskScore: 0.5,
+			addictionHistory: [],
+			addictionSeverity: 0,
 			paused: false,
 			popupOpen: false,
 			viewMode: 'values'
@@ -927,6 +944,11 @@
 
 		function applyBackendState(data) {
 			if (!data || typeof data !== 'object') return;
+			if (Array.isArray(data.addictionHistory)
+				&& data.addictionHistory.length === ADDICTION_HISTORY_DAYS
+				&& data.addictionHistory.every((minutes) => typeof minutes === 'number' && Number.isFinite(minutes) && minutes >= 0)) {
+				state.addictionHistory = data.addictionHistory.map((minutes) => Math.min(MAX_DAILY_MINS, minutes));
+			}
 			if (typeof data.Instagram === 'number') state.Instagram = data.Instagram;
 			if (typeof data.Tiktok === 'number') state.Tiktok = data.Tiktok;
 			if (typeof data.Tstart === 'number' && data.Tstart > 0) {
@@ -958,6 +980,21 @@
 				state.prevNightScrolling = Math.max(0, data.prevNightScrolling);
 				state.avoidedScreensBeforeBed = state.prevNightScrolling <= 0;
 			}
+		}
+
+		function calculateAddictionSeverity() {
+			if (state.addictionHistory.length !== ADDICTION_HISTORY_DAYS) return null;
+			const weightedMinutes = state.addictionHistory.reduce(
+				(total, minutes, index) => total + minutes * (index + 1),
+				0
+			);
+			return Math.min(100, (weightedMinutes / ADDICTION_SEVERITY_MAX_MINUTES) * 100);
+		}
+
+		function seedAddictionHistory() {
+			state.addictionHistory = Array(ADDICTION_HISTORY_DAYS).fill(
+				Math.min(MAX_DAILY_MINS, Math.max(0, state.Tstart))
+			);
 		}
 
 		async function syncCalculationsWithPython() {
@@ -1245,6 +1282,10 @@
 				`Day ${state.current_day} Goal: ${state.dailyGoal.toFixed(1)} min (Target: ${state.Tgoal.toFixed(0)} min)`;
 			document.getElementById('goalValueDaily').textContent = `${state.dailyGoal.toFixed(1)} min`;
 			document.getElementById('goalValueRelapse').textContent = `${(state.sigmoidRiskScore * 100).toFixed(1)}%`;
+			const addictionSeverity = calculateAddictionSeverity();
+			state.addictionSeverity = addictionSeverity ?? 0;
+			document.getElementById('goalValueAddictionSeverity').textContent =
+				addictionSeverity === null ? '—' : `${addictionSeverity.toFixed(1)}%`;
 
 			if (redrawCharts) {
 				drawRiskChart();
@@ -1311,6 +1352,9 @@
 			document.getElementById('surveyErr').textContent = '';
 			state.Tstart = ts;
 			state.Tgoal = tg;
+			if (state.addictionHistory.length !== ADDICTION_HISTORY_DAYS) {
+				seedAddictionHistory();
+			}
 			state.timeScrolling = 0;
 			state.cleanScore = 1;
 			document.getElementById('startModal').classList.remove('open');
@@ -1325,6 +1369,11 @@
 			} else {
 				state.cleanScore = 0;
 			}
+			if (state.addictionHistory.length !== ADDICTION_HISTORY_DAYS) {
+				seedAddictionHistory();
+			}
+			state.addictionHistory.push(Math.min(MAX_DAILY_MINS, Math.max(0, state.timeScrolling)));
+			state.addictionHistory = state.addictionHistory.slice(-ADDICTION_HISTORY_DAYS);
 			// Yesterday's night scrolling decides the "avoided screens before bed" boolean
 			state.prevNightScrolling = state.nightScrolling;
 			state.avoidedScreensBeforeBed = state.prevNightScrolling <= 0;
