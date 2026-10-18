@@ -63,7 +63,7 @@ Open your **Terminal** (macOS/Linux) or **Command Prompt/PowerShell** (Windows),
 cd path/to/Rebound
 
 # 2. Install all required dependencies
-pip install -r requirements.txt
+pip install pygetwindow websockets matplotlib numpy
 
 # 3. Start the backend server
 python start.py
