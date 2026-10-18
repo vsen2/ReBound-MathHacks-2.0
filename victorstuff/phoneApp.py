@@ -1,4 +1,6 @@
 import os
+import sys
+import threading
 import tkinter as tk
 from tkinter import messagebox
 import matplotlib
@@ -6,16 +8,26 @@ matplotlib.use('TkAgg')
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-from calculations import (
+# Ensure root directory is on sys.path so commands.py is imported directly
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if ROOT_DIR not in sys.path:
+	sys.path.insert(0, ROOT_DIR)
+
+from commands import (
+	NIGHT_SCROLL_MINUTES,
+	SCROLL_MINUTES,
 	DOPAMINE_ITEMS,
+	MAX_DAILY_MINS,
 	ReBoundState,
 	calc_daily_goal,
+	calc_psych_state,
 	format_sim_time,
+	generate_ai_suggestions,
 	get_daily_goal_curve,
 	get_sigmoid_curve,
 )
 
-# Shared calculation/state model from calculations.py
+# Shared calculation/state model from commands.py
 state = ReBoundState()
 popup_open = False
 sim_paused = False
@@ -23,6 +35,8 @@ app_running = True
 current_screen_name = 'home'
 reel_counter = 1
 LOGO_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logo.png')
+if not os.path.exists(LOGO_PATH):
+	LOGO_PATH = os.path.join(ROOT_DIR, 'ReadMe', 'logo.png')
 
 
 def load_logo_photo(target_size=72):
@@ -217,10 +231,10 @@ pause_cv.bind('<ButtonRelease-1>', toggle_sim_pause)
 
 
 # =====================================================================
-# 1. HOME SCREEN (Widget + Next Day + App Icons)
+# 1. HOME SCREEN (Widget + Next Day + Gemini AI Coach + App Icons)
 # =====================================================================
 header_row = tk.Frame(home_screen, bg='#0f172a')
-header_row.pack(fill='x', padx=20, pady=(12, 4))
+header_row.pack(fill='x', padx=20, pady=(10, 4))
 tk.Label(
 	header_row, text='reBound', font=('Segoe UI', 14, 'bold'), fg='#f8fafc', bg='#0f172a'
 ).pack(side='left')
@@ -237,37 +251,37 @@ sim_speed_lbl.pack(side='right', pady=4)
 sim_speed_lbl.bind('<ButtonRelease-1>', toggle_sim_pause)
 
 widget_cv = tk.Canvas(
-	home_screen, width=338, height=185, bg='#0f172a', highlightthickness=0, cursor='hand2'
+	home_screen, width=338, height=175, bg='#0f172a', highlightthickness=0, cursor='hand2'
 )
-widget_cv.pack(padx=18, pady=6)
+widget_cv.pack(padx=18, pady=4)
 
-draw_rounded_rect(widget_cv, 2, 2, 336, 183, r=24, fill='#1e293b', outline='#334155', width=1.5)
+draw_rounded_rect(widget_cv, 2, 2, 336, 173, r=24, fill='#1e293b', outline='#334155', width=1.5)
 widget_cv.create_text(
-	20, 24, text='REBOUND WIDGET', anchor='w', fill='#38bdf8', font=('Segoe UI', 9, 'bold')
+	20, 22, text='REBOUND WIDGET', anchor='w', fill='#38bdf8', font=('Segoe UI', 9, 'bold')
 )
 widget_risk_item = widget_cv.create_text(
-	318, 24, text='Risk: 0.0%', anchor='e', fill='#f87171', font=('Segoe UI', 9, 'bold')
+	318, 22, text='Risk: 0.0%', anchor='e', fill='#f87171', font=('Segoe UI', 9, 'bold')
 )
 widget_clean_item = widget_cv.create_text(
-	20, 62, text='Clean Streak: 1 🔥', anchor='w', fill='#4ade80', font=('Segoe UI', 18, 'bold')
+	20, 56, text='Clean Streak: 1 🔥', anchor='w', fill='#4ade80', font=('Segoe UI', 17, 'bold')
 )
 widget_status_item = widget_cv.create_text(
-	20, 92,
+	20, 84,
 	text='Clean from doomscrolling — keep it up!',
 	anchor='w',
 	fill='#cbd5e1',
 	font=('Segoe UI', 8),
 )
 widget_scrolled_item = widget_cv.create_text(
-	20, 128, text='Scrolled: 0 min', anchor='w', fill='#f8fafc', font=('Segoe UI', 10, 'bold')
+	20, 118, text='Scrolled: 0 min', anchor='w', fill='#f8fafc', font=('Segoe UI', 9, 'bold')
 )
 widget_limit_item = widget_cv.create_text(
-	318, 128, text='Limit: 30 min', anchor='e', fill='#94a3b8', font=('Segoe UI', 10, 'bold')
+	318, 118, text='Limit: 30 min', anchor='e', fill='#94a3b8', font=('Segoe UI', 9, 'bold')
 )
 
-draw_rounded_rect(widget_cv, 20, 148, 318, 162, r=7, fill='#0f172a', outline='')
+draw_rounded_rect(widget_cv, 20, 138, 318, 152, r=7, fill='#0f172a', outline='')
 widget_prog_fill = draw_rounded_rect(
-	widget_cv, 20, 148, 28, 162, r=7, fill='#38bdf8', outline=''
+	widget_cv, 20, 138, 28, 152, r=7, fill='#38bdf8', outline=''
 )
 widget_cv.bind('<ButtonRelease-1>', lambda e: show_screen(unscroll_screen, 'rebound'))
 
@@ -284,19 +298,45 @@ next_day_pill = make_pill_button(
 	text='☀️  Next Day (New Day Survey)',
 	command=trigger_new_day,
 	width=338,
-	height=40,
+	height=38,
 	bg_parent='#0f172a',
 	fill='#10b981',
 	hover_fill='#059669',
 	fg='#06281e',
 	font=('Segoe UI', 10, 'bold'),
-	radius=20,
+	radius=19,
 )
-next_day_pill.pack(padx=18, pady=(8, 4))
+next_day_pill.pack(padx=18, pady=(6, 4))
+
+# Home Screen Gemini-Powered Habit & Relapse Prevention Preview Card
+home_ai_card = tk.Frame(home_screen, bg='#1e293b', padx=12, pady=8, highlightthickness=1, highlightbackground='#334155')
+home_ai_card.pack(fill='x', padx=18, pady=6)
+
+home_ai_top = tk.Frame(home_ai_card, bg='#1e293b')
+home_ai_top.pack(fill='x')
+tk.Label(
+	home_ai_top,
+	text='✨ GEMINI HABIT & RELAPSE SUGGESTIONS',
+	font=('Segoe UI', 8, 'bold'),
+	fg='#38bdf8',
+	bg='#1e293b',
+).pack(side='left')
+
+home_ai_lbl = tk.Label(
+	home_ai_card,
+	text='Tap "✨ Refresh AI" in reBound or complete a survey for live Gemini coaching.',
+	font=('Segoe UI', 8),
+	fg='#e2e8f0',
+	bg='#1e293b',
+	justify='left',
+	anchor='w',
+	wraplength=310,
+)
+home_ai_lbl.pack(fill='x', pady=(4, 0))
 
 tk.Label(
 	home_screen, text='Apps', font=('Segoe UI', 10, 'bold'), fg='#94a3b8', bg='#0f172a'
-).pack(anchor='w', padx=22, pady=(14, 6))
+).pack(anchor='w', padx=22, pady=(8, 4))
 
 apps_grid = tk.Frame(home_screen, bg='#0f172a')
 apps_grid.pack(fill='x', padx=22)
@@ -322,7 +362,7 @@ def make_app_icon(parent, icon_char, title, bg_color, hover_color, command, phot
 
 
 def open_instagram_app():
-	state.record_instagram_scroll(5.0, is_night=(state.sim_minutes % 1440) >= 20 * 60)
+	state.record_instagram_scroll(SCROLL_MINUTES, is_night=(state.sim_minutes % 1440) >= 20 * 60)
 	sync_entries_from_state()
 	show_screen(instagram_screen, 'instagram')
 
@@ -337,14 +377,14 @@ unscroll_icon = make_app_icon(
 	lambda: show_screen(unscroll_screen, 'rebound'),
 	photo_image=unscroll_logo_img,
 )
-unscroll_icon.grid(row=0, column=0, padx=16, pady=6)
+unscroll_icon.grid(row=0, column=0, padx=16, pady=4)
 
 insta_icon = make_app_icon(apps_grid, '📸', 'Instagram', '#db2777', '#be185d', open_instagram_app)
-insta_icon.grid(row=0, column=1, padx=16, pady=6)
+insta_icon.grid(row=0, column=1, padx=16, pady=4)
 
 
 # =====================================================================
-# 2. REBOUND APP SCREEN (Tabs: Risk Sigmoid & Daily Goal Chart)
+# 2. REBOUND APP SCREEN (Tabs: Results & AI, Risk Sigmoid, Daily Goal)
 # =====================================================================
 unscroll_header = tk.Frame(unscroll_screen, bg='#0f172a', pady=6)
 unscroll_header.pack(fill='x', padx=12)
@@ -374,44 +414,190 @@ new_day_top_pill = make_pill_button(
 )
 new_day_top_pill.pack(side='right')
 
-# Tab Switcher Bar inside Unscroll App
+# 3-Tab Switcher Bar inside reBound App: Results & AI | Risk Graph | Goal Graph
 tab_bar = tk.Frame(unscroll_screen, bg='#0f172a')
 tab_bar.pack(fill='x', padx=12, pady=(2, 4))
 
+results_tab_frame = tk.Frame(unscroll_screen, bg='#0f172a')
 risk_tab_frame = tk.Frame(unscroll_screen, bg='#0f172a')
 goal_tab_frame = tk.Frame(unscroll_screen, bg='#0f172a')
 
-tab_risk_cv = tk.Canvas(tab_bar, width=170, height=30, bg='#0f172a', highlightthickness=0, cursor='hand2')
-tab_risk_shape = draw_rounded_rect(tab_risk_cv, 2, 2, 168, 28, r=13, fill='#2563eb', outline='')
-tab_risk_txt = tab_risk_cv.create_text(85, 15, text='📈  Risk Sigmoid', fill='white', font=('Segoe UI', 9, 'bold'))
-tab_risk_cv.pack(side='left', padx=(0, 6))
+tab_results_cv = tk.Canvas(tab_bar, width=112, height=30, bg='#0f172a', highlightthickness=0, cursor='hand2')
+tab_results_shape = draw_rounded_rect(tab_results_cv, 2, 2, 110, 28, r=13, fill='#2563eb', outline='')
+tab_results_txt = tab_results_cv.create_text(56, 15, text='✨ Results & AI', fill='white', font=('Segoe UI', 8, 'bold'))
+tab_results_cv.pack(side='left', padx=(0, 4))
 
-tab_goal_cv = tk.Canvas(tab_bar, width=170, height=30, bg='#0f172a', highlightthickness=0, cursor='hand2')
-tab_goal_shape = draw_rounded_rect(tab_goal_cv, 2, 2, 168, 28, r=13, fill='#1e293b', outline='')
-tab_goal_txt = tab_goal_cv.create_text(85, 15, text='🎯  Daily Goal', fill='#94a3b8', font=('Segoe UI', 9, 'bold'))
-tab_goal_cv.pack(side='left')
+tab_risk_cv = tk.Canvas(tab_bar, width=112, height=30, bg='#0f172a', highlightthickness=0, cursor='hand2')
+tab_risk_shape = draw_rounded_rect(tab_risk_cv, 2, 2, 110, 28, r=13, fill='#1e293b', outline='')
+tab_risk_txt = tab_risk_cv.create_text(56, 15, text='📈 Risk Graph', fill='#94a3b8', font=('Segoe UI', 8, 'bold'))
+tab_risk_cv.pack(side='left', padx=2)
+
+tab_goal_cv = tk.Canvas(tab_bar, width=112, height=30, bg='#0f172a', highlightthickness=0, cursor='hand2')
+tab_goal_shape = draw_rounded_rect(tab_goal_cv, 2, 2, 110, 28, r=13, fill='#1e293b', outline='')
+tab_goal_txt = tab_goal_cv.create_text(56, 15, text='🎯 Goal Graph', fill='#94a3b8', font=('Segoe UI', 8, 'bold'))
+tab_goal_cv.pack(side='left', padx=(4, 0))
 
 
 def switch_unscroll_tab(tab_name):
-	if tab_name == 'risk':
-		goal_tab_frame.pack_forget()
+	for f in (results_tab_frame, risk_tab_frame, goal_tab_frame):
+		f.pack_forget()
+
+	tab_results_cv.itemconfig(tab_results_shape, fill='#1e293b')
+	tab_results_cv.itemconfig(tab_results_txt, fill='#94a3b8')
+	tab_risk_cv.itemconfig(tab_risk_shape, fill='#1e293b')
+	tab_risk_cv.itemconfig(tab_risk_txt, fill='#94a3b8')
+	tab_goal_cv.itemconfig(tab_goal_shape, fill='#1e293b')
+	tab_goal_cv.itemconfig(tab_goal_txt, fill='#94a3b8')
+
+	if tab_name == 'results':
+		results_tab_frame.pack(fill='both', expand=True)
+		tab_results_cv.itemconfig(tab_results_shape, fill='#2563eb')
+		tab_results_cv.itemconfig(tab_results_txt, fill='white')
+	elif tab_name == 'risk':
 		risk_tab_frame.pack(fill='both', expand=True)
 		tab_risk_cv.itemconfig(tab_risk_shape, fill='#2563eb')
 		tab_risk_cv.itemconfig(tab_risk_txt, fill='white')
-		tab_goal_cv.itemconfig(tab_goal_shape, fill='#1e293b')
-		tab_goal_cv.itemconfig(tab_goal_txt, fill='#94a3b8')
 	else:
-		risk_tab_frame.pack_forget()
 		goal_tab_frame.pack(fill='both', expand=True)
 		tab_goal_cv.itemconfig(tab_goal_shape, fill='#10b981')
 		tab_goal_cv.itemconfig(tab_goal_txt, fill='#06281e')
-		tab_risk_cv.itemconfig(tab_risk_shape, fill='#1e293b')
-		tab_risk_cv.itemconfig(tab_risk_txt, fill='#94a3b8')
 	refresh_ui()
 
 
+tab_results_cv.bind('<ButtonRelease-1>', lambda e: switch_unscroll_tab('results'))
 tab_risk_cv.bind('<ButtonRelease-1>', lambda e: switch_unscroll_tab('risk'))
 tab_goal_cv.bind('<ButtonRelease-1>', lambda e: switch_unscroll_tab('goal'))
+
+# --- TAB 0: CURRENT RESULTS & GEMINI AI HABIT COACH ---
+results_card = tk.Frame(results_tab_frame, bg='#1e293b', padx=14, pady=10, highlightthickness=1, highlightbackground='#334155')
+results_card.pack(fill='x', padx=12, pady=(4, 6))
+
+tk.Label(
+	results_card, text='Current Results', font=('Segoe UI', 10, 'bold'), fg='#f8fafc', bg='#1e293b'
+).pack(anchor='w', pady=(0, 6))
+
+metrics_row = tk.Frame(results_card, bg='#1e293b')
+metrics_row.pack(fill='x')
+
+limit_box = tk.Frame(metrics_row, bg='#0f172a', padx=10, pady=8, highlightthickness=1, highlightbackground='#334155')
+limit_box.pack(side='left', fill='both', expand=True, padx=(0, 4))
+tk.Label(limit_box, text="TODAY'S DAILY LIMIT", font=('Segoe UI', 7, 'bold'), fg='#94a3b8', bg='#0f172a').pack(anchor='w')
+results_daily_limit_lbl = tk.Label(limit_box, text='30.0 min', font=('Segoe UI', 15, 'bold'), fg='#4ade80', bg='#0f172a')
+results_daily_limit_lbl.pack(anchor='w', pady=(2, 0))
+
+relapse_box = tk.Frame(metrics_row, bg='#0f172a', padx=10, pady=8, highlightthickness=1, highlightbackground='#334155')
+relapse_box.pack(side='left', fill='both', expand=True, padx=(4, 0))
+tk.Label(relapse_box, text='RELAPSE PROBABILITY', font=('Segoe UI', 7, 'bold'), fg='#94a3b8', bg='#0f172a').pack(anchor='w')
+results_relapse_lbl = tk.Label(relapse_box, text='50.0%', font=('Segoe UI', 15, 'bold'), fg='#38bdf8', bg='#0f172a')
+results_relapse_lbl.pack(anchor='w', pady=(2, 0))
+
+# Gemini AI Coach Card inside Results Tab
+ai_coach_card = tk.Frame(results_tab_frame, bg='#1e293b', padx=14, pady=10, highlightthickness=1, highlightbackground='#334155')
+ai_coach_card.pack(fill='both', expand=True, padx=12, pady=(2, 6))
+
+ai_header_row = tk.Frame(ai_coach_card, bg='#1e293b')
+ai_header_row.pack(fill='x', pady=(0, 6))
+
+tk.Label(
+	ai_header_row,
+	text='✨ GEMINI HABIT & RELAPSE SUGGESTIONS',
+	font=('Segoe UI', 8, 'bold'),
+	fg='#38bdf8',
+	bg='#1e293b',
+).pack(side='left')
+
+
+def request_ai_suggestions():
+	if not app_running:
+		return
+	ai_output_lbl.config(text='✨ Analyzing your reBound metrics with Gemini AI...')
+	home_ai_lbl.config(text='✨ Analyzing your reBound metrics with Gemini AI...')
+
+	snapshot = state.to_dict()
+
+	def worker():
+		res = generate_ai_suggestions(snapshot)
+		text = res.get('suggestions', '')
+		if app_running:
+			try:
+				root.after(0, lambda: _apply_ai_text(text))
+			except Exception:
+				pass
+
+	threading.Thread(target=worker, daemon=True).start()
+
+
+def _apply_ai_text(text):
+	if not app_running:
+		return
+	try:
+		ai_output_lbl.config(text=text)
+		first_line = text.splitlines()[0] if text else ''
+		home_ai_lbl.config(text=first_line)
+	except tk.TclError:
+		pass
+
+
+make_pill_button(
+	ai_header_row,
+	text='✨ Refresh AI',
+	command=request_ai_suggestions,
+	width=92,
+	height=24,
+	bg_parent='#1e293b',
+	fill='#10b981',
+	hover_fill='#059669',
+	fg='#06281e',
+	font=('Segoe UI', 8, 'bold'),
+	radius=12,
+).pack(side='right')
+
+ai_output_holder = tk.Frame(ai_coach_card, bg='#0f172a', padx=10, pady=8, highlightthickness=1, highlightbackground='#334155')
+ai_output_holder.pack(fill='both', expand=True)
+
+ai_output_lbl = tk.Label(
+	ai_output_holder,
+	text='Click "✨ Refresh AI" for personalized habit and relapse-prevention advice powered by commands.py.',
+	font=('Segoe UI', 9),
+	fg='#e2e8f0',
+	bg='#0f172a',
+	justify='left',
+	anchor='nw',
+	wraplength=296,
+)
+ai_output_lbl.pack(fill='both', expand=True)
+
+results_btn_row = tk.Frame(ai_coach_card, bg='#1e293b')
+results_btn_row.pack(fill='x', pady=(8, 0))
+
+make_pill_button(
+	results_btn_row,
+	text='Beginning Survey',
+	command=lambda: open_starting_survey(),
+	width=145,
+	height=28,
+	bg_parent='#1e293b',
+	fill='#475569',
+	hover_fill='#334155',
+	fg='white',
+	font=('Segoe UI', 8, 'bold'),
+	radius=14,
+).pack(side='left', padx=(0, 6))
+
+make_pill_button(
+	results_btn_row,
+	text='📊 View Graphs',
+	command=lambda: switch_unscroll_tab('risk'),
+	width=145,
+	height=28,
+	bg_parent='#1e293b',
+	fill='#3b82f6',
+	hover_fill='#2563eb',
+	fg='white',
+	font=('Segoe UI', 8, 'bold'),
+	radius=14,
+).pack(side='right')
+
 
 # --- TAB 1: RISK SIGMOID + VARIABLES ---
 fig = Figure(figsize=(3.5, 2.2), dpi=100, facecolor='#1e293b')
@@ -432,9 +618,9 @@ point_risk, = ax.plot(
 	label=f'Risk: {state.sigmoidRiskScore:.1%}',
 )
 
-ax.set_title('Doomscrolling Risk (Sigmoid)', fontsize=9.5, fontweight='bold', color='#f8fafc')
-ax.set_xlabel('Risk Score (z)', fontsize=8, color='#cbd5e1')
-ax.set_ylabel('Probability σ(z)', fontsize=8, color='#cbd5e1')
+ax.set_title('reBound — Doomscrolling Risk', fontsize=9.5, fontweight='bold', color='#f8fafc')
+ax.set_xlabel('Risk Score', fontsize=8, color='#cbd5e1')
+ax.set_ylabel('Relapse Probability', fontsize=8, color='#cbd5e1')
 ax.tick_params(colors='#94a3b8', labelsize=7.5)
 for spine in ax.spines.values():
 	spine.set_color('#334155')
@@ -446,7 +632,7 @@ canvas.get_tk_widget().pack(fill='x', padx=12, pady=(2, 4))
 
 unscroll_clean_lbl = tk.Label(
 	risk_tab_frame,
-	text='Clean Streak: 1  •  Risk: 0.0% (z=0.00)',
+	text='Clean Streak: 1  •  Risk: 0.0%',
 	font=('Segoe UI', 9, 'bold'),
 	bg='#1e293b',
 	fg='#38bdf8',
@@ -458,16 +644,16 @@ inputs_panel = tk.Frame(risk_tab_frame, bg='#1e293b', padx=14, pady=6)
 inputs_panel.pack(fill='both', expand=True, padx=12, pady=(2, 6))
 
 tk.Label(
-	inputs_panel, text='Risk Score Variables', font=('Segoe UI', 10, 'bold'), bg='#1e293b', fg='#f8fafc'
+	inputs_panel, text='Risk Score Factors', font=('Segoe UI', 10, 'bold'), bg='#1e293b', fg='#f8fafc'
 ).grid(row=0, column=0, columnspan=2, sticky='w', pady=(0, 3))
 
 risk_field_defs = [
-	('nightScrolling', 'nightScrolling (min)', f'{state.nightScrolling:g}'),
-	('psychState', 'psychState (0-1)', f'{state.psychState:g}'),
-	('timeScrolling', 'timeScrolling (min)', f'{state.timeScrolling:g}'),
-	('dailyGoal', 'dailyGoal (min)', f'{state.dailyGoal:.1f}'),
-	('timeBetweenLogins', 'timeBetweenLogins (min)', f'{state.timeBetweenLogins:g}'),
-	('Dopamine', 'Dopamine (%)', f'{state.Dopamine:.0f}%'),
+	('nightScrolling', 'Night Scrolling (min)', f'{state.nightScrolling:g}'),
+	('psychState', 'Stress / Psych Level (0-1)', f'{state.psychState:g}'),
+	('timeScrolling', 'Total Scrolling Today (min)', f'{state.timeScrolling:g}'),
+	('dailyGoal', 'Daily Limit (min)', f'{state.dailyGoal:.1f}'),
+	('timeBetweenLogins', 'Time Between Logins (min)', f'{state.timeBetweenLogins:g}'),
+	('Dopamine', 'Healthy Dopamine (%)', f'{state.Dopamine:.0f}%'),
 ]
 
 var_entries = {}
@@ -506,7 +692,7 @@ goal_entries = {}
 def sync_entries_from_state():
 	values_map = {
 		'nightScrolling': f'{state.nightScrolling:g}',
-		'psychState': f'{state.psychState:g}',
+		'psychState': f'{state.psychState:.3f}'.rstrip('0').rstrip('.') if state.psychState else '0',
 		'timeScrolling': f'{state.timeScrolling:g}',
 		'dailyGoal': f'{state.dailyGoal:.1f}',
 		'timeBetweenLogins': f'{state.timeBetweenLogins:g}',
@@ -531,19 +717,19 @@ def sync_entries_from_state():
 
 def apply_variable_inputs():
 	try:
-		state.nightScrolling = float(var_entries['nightScrolling'].get())
-		state.psychState = float(var_entries['psychState'].get())
-		state.timeScrolling = float(var_entries['timeScrolling'].get())
+		state.nightScrolling = max(0.0, float(var_entries['nightScrolling'].get()))
+		state.psychState = min(1.0, max(0.0, float(var_entries['psychState'].get())))
+		state.timeScrolling = max(0.0, float(var_entries['timeScrolling'].get()))
 		entered_goal = float(var_entries['dailyGoal'].get())
-		state.timeBetweenLogins = float(var_entries['timeBetweenLogins'].get())
+		state.timeBetweenLogins = max(0.0, float(var_entries['timeBetweenLogins'].get()))
 		dop_raw = var_entries['Dopamine'].get().strip().rstrip('%').strip()
-		state.Dopamine = float(dop_raw)
+		state.Dopamine = min(100.0, max(0.0, float(dop_raw)))
 	except ValueError:
 		status_msg.config(text='Enter valid numbers in all fields.')
 		return
 
-	if entered_goal == 0:
-		status_msg.config(text='dailyGoal cannot be 0.')
+	if entered_goal <= 0:
+		status_msg.config(text='Daily Limit must be greater than 0.')
 		return
 
 	state.dailyGoal = entered_goal
@@ -552,6 +738,7 @@ def apply_variable_inputs():
 	if max(state.timeScrolling, state.nightScrolling) > state.dailyGoal:
 		state.cleanScore = 0
 
+	state.sync_to_storage()
 	sync_entries_from_state()
 	status_msg.config(text='')
 	refresh_ui(redraw_charts=True)
@@ -619,8 +806,8 @@ point_today_goal, = ax_goal.plot(
 	label=f'Day {state.current_day}: {state.dailyGoal:.1f}m',
 )
 
-ax_goal.set_title('Daily Goal Progression', fontsize=9.5, fontweight='bold', color='#f8fafc')
-ax_goal.set_xlabel('Day (t)', fontsize=8, color='#cbd5e1')
+ax_goal.set_title('reBound — Daily Goal Progression', fontsize=9.5, fontweight='bold', color='#f8fafc')
+ax_goal.set_xlabel('Day', fontsize=8, color='#cbd5e1')
 ax_goal.set_ylabel('Goal Limit (min)', fontsize=8, color='#cbd5e1')
 ax_goal.tick_params(colors='#94a3b8', labelsize=7.5)
 for spine in ax_goal.spines.values():
@@ -646,18 +833,18 @@ goal_info_card.pack(fill='both', expand=True, padx=12, pady=(2, 6))
 
 tk.Label(
 	goal_info_card,
-	text='Daily Goal Parameters (calc_daily_goal)',
+	text='Daily Goal Settings',
 	font=('Segoe UI', 10, 'bold'),
 	fg='#f8fafc',
 	bg='#1e293b',
 ).grid(row=0, column=0, columnspan=2, sticky='w', pady=(0, 3))
 
 goal_field_defs = [
-	('day', 'day (t)', f'{state.current_day:g}'),
-	('Tstart', 'Tstart (min)', f'{state.Tstart:g}'),
-	('Tgoal', 'Tgoal (min)', f'{state.Tgoal:g}'),
-	('timeBetweenLogins', 'timeBetweenLogins (min)', f'{state.timeBetweenLogins:g}'),
-	('relapseProbability', 'relapseProbability (0-1)', f'{state.sigmoidRiskScore:.3f}'),
+	('day', 'Current Day', f'{state.current_day:g}'),
+	('Tstart', 'Starting Time (min)', f'{state.Tstart:g}'),
+	('Tgoal', 'Target Goal (min)', f'{state.Tgoal:g}'),
+	('timeBetweenLogins', 'Time Between Logins (min)', f'{state.timeBetweenLogins:g}'),
+	('relapseProbability', 'Relapse Risk (0-1)', f'{state.sigmoidRiskScore:.3f}'),
 ]
 
 for idx, (key, label_text, default_v) in enumerate(goal_field_defs, start=1):
@@ -694,14 +881,20 @@ def apply_goal_inputs():
 		day_val = max(1, int(float(goal_entries['day'].get())))
 		t_start_val = float(goal_entries['Tstart'].get())
 		t_goal_val = float(goal_entries['Tgoal'].get())
-		login_val = float(goal_entries['timeBetweenLogins'].get())
-		relapse_val = float(goal_entries['relapseProbability'].get())
+		login_val = max(0.0, float(goal_entries['timeBetweenLogins'].get()))
+		relapse_val = min(1.0, max(0.0, float(goal_entries['relapseProbability'].get())))
 	except ValueError:
 		goal_status_msg.config(text='Enter valid numbers in all fields.')
 		return
 
-	if t_goal_val <= 0:
-		goal_status_msg.config(text='Tgoal must be greater than 0.')
+	if t_start_val <= 0 or t_goal_val <= 0:
+		goal_status_msg.config(text='Values must be greater than 0.')
+		return
+	if t_start_val > MAX_DAILY_MINS or t_goal_val > MAX_DAILY_MINS:
+		goal_status_msg.config(text=f'Values cannot exceed {int(MAX_DAILY_MINS)} min.')
+		return
+	if t_goal_val > t_start_val:
+		goal_status_msg.config(text='Target Goal cannot exceed Starting Time.')
 		return
 
 	state.current_day = day_val
@@ -718,6 +911,7 @@ def apply_goal_inputs():
 			relapse_val,
 		)
 	)
+	state.sync_to_storage()
 	goal_status_msg.config(text='')
 	sync_entries_from_state()
 	refresh_ui(redraw_charts=True)
@@ -740,7 +934,7 @@ make_pill_button(
 	radius=15,
 ).pack(side='left', padx=6)
 
-risk_tab_frame.pack(fill='both', expand=True)
+results_tab_frame.pack(fill='both', expand=True)
 
 
 # =====================================================================
@@ -752,14 +946,15 @@ tk.Label(
 	insta_header, text='📸  Instagram Reels', font=('Segoe UI', 12, 'bold'), fg='white', bg='#18181b'
 ).pack(side='left', padx=14)
 
-tk.Label(
+insta_banner_lbl = tk.Label(
 	instagram_screen,
-	text='⚠️ Doomscrolling Active — Clean Streak Reset to 0!',
+	text='⏱ Scrolling Active — Stay within your Daily Limit to keep Clean Streak!',
 	font=('Segoe UI', 9, 'bold'),
-	bg='#7f1d1d',
-	fg='#fecaca',
+	bg='#1e3a8a',
+	fg='#dbeafe',
 	pady=6,
-).pack(fill='x', padx=16, pady=(12, 6))
+)
+insta_banner_lbl.pack(fill='x', padx=16, pady=(12, 6))
 
 reel_cv = tk.Canvas(instagram_screen, width=342, height=340, bg='#121212', highlightthickness=0)
 reel_cv.pack(padx=16, pady=6)
@@ -771,7 +966,7 @@ reel_title_item = reel_cv.create_text(
 reel_stats_item = reel_cv.create_text(
 	171,
 	130,
-	text='Scrolling live at 600x speed...\nYour Clean Streak has been reset to 0.',
+	text='Scrolling live at 600x speed...\nStay under your Daily Limit to preserve Clean Streak.',
 	fill='#d4d4d8',
 	font=('Segoe UI', 10),
 	justify='center',
@@ -784,18 +979,19 @@ def scroll_more_reels(minutes_added, is_night=False):
 	night_now = is_night or ((state.sim_minutes % 1440) >= 20 * 60)
 	state.record_instagram_scroll(minutes_added, is_night=night_now)
 	sync_entries_from_state()
+	effective_scrolled = max(state.timeScrolling, state.nightScrolling)
 	reel_cv.itemconfig(reel_title_item, text=f'🎬  Infinite Reel #{reel_counter}')
 	reel_cv.itemconfig(
 		reel_stats_item,
-		text=f'Scrolled +{minutes_added} min!\nTotal Today: {state.timeScrolling:.0f} min (Limit: {state.dailyGoal:.0f} min)\nClean Streak: {state.cleanScore}',
+		text=f'Scrolled +{minutes_added} min!\nTotal Today: {effective_scrolled:.0f} min (Limit: {state.dailyGoal:.1f} min)\nClean Streak: {state.cleanScore}',
 	)
 	refresh_ui()
 
 
 make_pill_button(
 	instagram_screen,
-	text='⬇️  Scroll Next Reel (+5 min)',
-	command=lambda: scroll_more_reels(5, is_night=False),
+	text=f'⬇️  Scroll Next Reel (+{SCROLL_MINUTES} min)',
+	command=lambda: scroll_more_reels(SCROLL_MINUTES, is_night=False),
 	width=330,
 	height=40,
 	bg_parent='#121212',
@@ -808,8 +1004,8 @@ make_pill_button(
 
 make_pill_button(
 	instagram_screen,
-	text='🌙  Late-Night Doomscroll (+15 min)',
-	command=lambda: scroll_more_reels(15, is_night=True),
+	text=f'🌙  Late-Night Doomscroll (+{NIGHT_SCROLL_MINUTES} min)',
+	command=lambda: scroll_more_reels(NIGHT_SCROLL_MINUTES, is_night=True),
 	width=330,
 	height=40,
 	bg_parent='#121212',
@@ -836,7 +1032,7 @@ make_pill_button(
 
 
 # =====================================================================
-# 4. POPUP SURVEYS
+# 4. POPUP SURVEYS (Starting Survey & New Day Dopamine + Psych Sliders)
 # =====================================================================
 def open_starting_survey():
 	global popup_open
@@ -863,12 +1059,12 @@ def open_starting_survey():
 
 	entries = {}
 	fields = (
-		('Tstart', 'How many minutes a day do you currently spend doomscrolling?'),
-		('Tgoal', 'How many minutes a day do you want to get your doomscrolling down to?'),
+		('Tstart', 'How many minutes a day do you currently spend doomscrolling? (Max: 1440)'),
+		('Tgoal', 'How many minutes a day do you want to get your doomscrolling down to? (Max: 1440)'),
 	)
 
 	tk.Label(
-		popup, text='Starting survey', font=('Segoe UI', 14, 'bold'), fg='#f8fafc', bg='#0f172a'
+		popup, text='reBound — Starting Survey', font=('Segoe UI', 14, 'bold'), fg='#f8fafc', bg='#0f172a'
 	).grid(row=0, column=0, padx=24, pady=(20, 12), sticky='w')
 
 	current_row = 1
@@ -892,8 +1088,8 @@ def open_starting_survey():
 		entries[field] = entry
 		current_row += 2
 
-	entries['Tstart'].insert(0, str(int(state.Tstart)))
-	entries['Tgoal'].insert(0, str(int(state.Tgoal)))
+	entries['Tstart'].insert(0, str(int(min(MAX_DAILY_MINS, state.Tstart))))
+	entries['Tgoal'].insert(0, str(int(min(state.Tstart, state.Tgoal))))
 	entries['Tstart'].focus_set()
 
 	def on_close():
@@ -912,15 +1108,31 @@ def open_starting_survey():
 		try:
 			parsed = {field: float(entry.get()) for field, entry in entries.items()}
 		except ValueError:
-			messagebox.showerror('Invalid input', 'Enter a number in each field.', parent=popup)
+			messagebox.showerror('Invalid input', 'Enter a valid number in each field.', parent=popup)
 			return
-		if parsed['Tgoal'] <= 0:
-			messagebox.showerror('Invalid input', 'Goal minutes must be greater than 0.', parent=popup)
+		ts, tg = parsed['Tstart'], parsed['Tgoal']
+		if ts <= 0 or tg <= 0:
+			messagebox.showerror('Invalid input', 'Minutes must be greater than 0.', parent=popup)
+			return
+		if ts > MAX_DAILY_MINS or tg > MAX_DAILY_MINS:
+			messagebox.showerror(
+				'Invalid input',
+				f'Values cannot exceed {int(MAX_DAILY_MINS)} minutes (60 × 24).',
+				parent=popup,
+			)
+			return
+		if tg > ts:
+			messagebox.showerror(
+				'Invalid input',
+				'Your goal cannot be higher than your current scrolling time.',
+				parent=popup,
+			)
 			return
 
-		state.set_starting_survey(parsed['Tstart'], parsed['Tgoal'])
+		state.set_starting_survey(ts, tg)
 		sync_entries_from_state()
 		refresh_ui(redraw_charts=True)
+		request_ai_suggestions()
 		popup_open = False
 		try:
 			popup.grab_release()
@@ -975,10 +1187,18 @@ def open_new_day_popup():
 		font=('Segoe UI', 14, 'bold'),
 		fg='#f8fafc',
 		bg='#0f172a',
-	).grid(row=0, column=0, padx=24, pady=(20, 12), sticky='w')
+	).grid(row=0, column=0, padx=24, pady=(16, 8), sticky='w')
+
+	tk.Label(
+		popup,
+		text='HEALTHY DOPAMINE HABITS',
+		font=('Segoe UI', 9, 'bold'),
+		fg='#38bdf8',
+		bg='#0f172a',
+	).grid(row=1, column=0, padx=24, pady=(4, 4), sticky='w')
 
 	check_vars = []
-	current_row = 1
+	current_row = 2
 	for idx, (label_text, _) in enumerate(DOPAMINE_ITEMS):
 		var = tk.BooleanVar(value=state.dopamine_selections[idx])
 		check_vars.append(var)
@@ -996,8 +1216,71 @@ def open_new_day_popup():
 			justify='left',
 			anchor='w',
 		)
-		cb.grid(row=current_row, column=0, padx=24, pady=6, sticky='w')
+		cb.grid(row=current_row, column=0, padx=24, pady=3, sticky='w')
 		current_row += 1
+
+	tk.Label(
+		popup,
+		text='PSYCHOLOGICAL STATE SLIDERS (0 – 5)',
+		font=('Segoe UI', 9, 'bold'),
+		fg='#38bdf8',
+		bg='#0f172a',
+	).grid(row=current_row, column=0, padx=24, pady=(10, 4), sticky='w')
+	current_row += 1
+
+	slider_defs = [
+		('craving', 'Craving', state.craving),
+		('withdrawal', 'Withdrawal', state.withdrawal),
+		('fomo', 'FOMO (Fear of Missing Out)', state.fomo),
+		('stress', 'Stress', state.stress),
+	]
+	slider_vars = {}
+
+	psych_preview_lbl = tk.Label(
+		popup,
+		text=f'Stress / Psych Level: {state.psychState:.2f} (0–1 scale)',
+		font=('Segoe UI', 9, 'bold'),
+		fg='#10b981',
+		bg='#0f172a',
+	)
+
+	def update_psych_preview(_=None):
+		p_val = calc_psych_state(
+			slider_vars['craving'].get(),
+			slider_vars['withdrawal'].get(),
+			slider_vars['fomo'].get(),
+			slider_vars['stress'].get(),
+		)
+		psych_preview_lbl.config(text=f'Stress / Psych Level: {p_val:.2f} (0–1 scale)')
+
+	for key, label_text, init_val in slider_defs:
+		row_frame = tk.Frame(popup, bg='#1e293b', padx=10, pady=4)
+		row_frame.grid(row=current_row, column=0, padx=24, pady=3, sticky='ew')
+		tk.Label(
+			row_frame, text=label_text, font=('Segoe UI', 9, 'bold'), fg='#f8fafc', bg='#1e293b', width=24, anchor='w'
+		).pack(side='left')
+		d_var = tk.DoubleVar(value=init_val)
+		slider_vars[key] = d_var
+		sc = tk.Scale(
+			row_frame,
+			variable=d_var,
+			from_=0.0,
+			to=5.0,
+			resolution=0.5,
+			orient='horizontal',
+			length=180,
+			bg='#1e293b',
+			fg='#38bdf8',
+			troughcolor='#0f172a',
+			highlightthickness=0,
+			font=('Segoe UI', 8),
+			command=update_psych_preview,
+		)
+		sc.pack(side='right')
+		current_row += 1
+
+	psych_preview_lbl.grid(row=current_row, column=0, padx=24, pady=(6, 2), sticky='w')
+	current_row += 1
 
 	def on_close():
 		global popup_open
@@ -1012,9 +1295,16 @@ def open_new_day_popup():
 
 	def submit(_=None):
 		global popup_open
-		state.apply_dopamine_survey([var.get() for var in check_vars])
+		state.apply_dopamine_survey(
+			[var.get() for var in check_vars],
+			craving=slider_vars['craving'].get(),
+			withdrawal=slider_vars['withdrawal'].get(),
+			fomo=slider_vars['fomo'].get(),
+			stress=slider_vars['stress'].get(),
+		)
 		sync_entries_from_state()
 		refresh_ui(redraw_charts=True)
+		request_ai_suggestions()
 		popup_open = False
 		try:
 			popup.grab_release()
@@ -1036,7 +1326,7 @@ def open_new_day_popup():
 		fg='#06281e',
 		font=('Segoe UI', 10, 'bold'),
 		radius=19,
-	).grid(row=current_row, column=0, padx=24, pady=(14, 22))
+	).grid(row=current_row, column=0, padx=24, pady=(10, 18))
 
 
 # =====================================================================
@@ -1055,13 +1345,15 @@ def refresh_ui(redraw_charts=True):
 	clock_status_lbl.config(text=format_sim_time(state.sim_minutes))
 	day_status_lbl.config(text=f'Day {state.current_day} • 5G')
 
+	effective_scrolled = max(state.timeScrolling, state.nightScrolling)
+
 	if redraw_charts:
 		x_new, y_new, x_limit = get_sigmoid_curve(state.riskScore)
 		line_curve.set_data(x_new, y_new)
 		ax.set_xlim(-x_limit, x_limit)
 
 		point_risk.set_data([state.riskScore], [state.sigmoidRiskScore])
-		point_risk.set_label(f'Risk: {state.sigmoidRiskScore:.1%} ({state.riskScore:.2f})')
+		point_risk.set_label(f'Risk: {state.sigmoidRiskScore:.1%}')
 		ax.legend(loc='upper left', fontsize=7.5, facecolor='#1e293b', edgecolor='#334155', labelcolor='#f8fafc')
 		canvas.draw_idle()
 
@@ -1085,13 +1377,29 @@ def refresh_ui(redraw_charts=True):
 		ax_goal.legend(loc='upper right', fontsize=7.5, facecolor='#1e293b', edgecolor='#334155', labelcolor='#f8fafc')
 		canvas_goal.draw_idle()
 
+	results_daily_limit_lbl.config(text=f'{state.dailyGoal:.1f} min')
+	results_relapse_lbl.config(text=f'{state.sigmoidRiskScore:.1%}')
+
 	goal_stats_lbl.config(
-		text=f'Day {state.current_day} Recommended Goal: {state.dailyGoal:.1f} min  •  Target: {state.Tgoal:.0f} min'
+		text=f'Day {state.current_day} Goal: {state.dailyGoal:.1f} min  •  Target: {state.Tgoal:.0f} min'
 	)
 
 	unscroll_clean_lbl.config(
-		text=f'Clean Streak: {state.cleanScore} 🔥  •  Risk: {state.sigmoidRiskScore:.1%} (z={state.riskScore:.2f})'
+		text=f'Clean Streak: {state.cleanScore} 🔥  •  Risk: {state.sigmoidRiskScore:.1%}'
 	)
+
+	if effective_scrolled <= state.dailyGoal:
+		insta_banner_lbl.config(
+			text=f'⏱ Scrolled {effective_scrolled:.0f}/{state.dailyGoal:.1f} min — Within Daily Limit (Clean Streak: {state.cleanScore})',
+			bg='#1e3a8a',
+			fg='#dbeafe',
+		)
+	else:
+		insta_banner_lbl.config(
+			text='⚠️ Daily Limit Exceeded — Clean Streak Reset to 0!',
+			bg='#7f1d1d',
+			fg='#fecaca',
+		)
 
 	widget_cv.itemconfig(widget_risk_item, text=f'Risk: {state.sigmoidRiskScore:.1%}')
 	if state.cleanScore > 0:
@@ -1107,15 +1415,18 @@ def refresh_ui(redraw_charts=True):
 			text=f'Day {state.current_day} • {format_sim_time(state.sim_minutes)} — Clean streak reset!',
 		)
 
-	widget_cv.itemconfig(widget_scrolled_item, text=f'Scrolled: {state.timeScrolling:.0f} min')
-	widget_cv.itemconfig(widget_limit_item, text=f'Limit: {state.dailyGoal:.1f} min')
+	widget_cv.itemconfig(
+		widget_scrolled_item,
+		text=f'Scrolled: {effective_scrolled:.0f}m (Night: {state.nightScrolling:.0f}m)',
+	)
+	widget_cv.itemconfig(widget_limit_item, text=f'Limit: {state.dailyGoal:.1f}m')
 
-	ratio = min(1.0, max(0.0, state.timeScrolling / state.dailyGoal)) if state.dailyGoal > 0 else 1.0
+	ratio = min(1.0, max(0.0, effective_scrolled / state.dailyGoal)) if state.dailyGoal > 0 else 1.0
 	fill_w = max(12, int(298 * ratio))
-	bar_color = '#38bdf8' if state.timeScrolling <= state.dailyGoal else '#ef4444'
+	bar_color = '#38bdf8' if effective_scrolled <= state.dailyGoal else '#ef4444'
 	widget_cv.delete(widget_prog_fill)
 	globals()['widget_prog_fill'] = draw_rounded_rect(
-		widget_cv, 20, 148, 20 + fill_w, 162, r=7, fill=bar_color, outline=''
+		widget_cv, 20, 138, 20 + fill_w, 152, r=7, fill=bar_color, outline=''
 	)
 
 
@@ -1135,9 +1446,10 @@ def tick_clock():
 		if is_insta:
 			state.record_instagram_scroll(6.0, is_night=(state.sim_minutes % 1440) >= 20 * 60)
 			sync_entries_from_state()
+			effective_scrolled = max(state.timeScrolling, state.nightScrolling)
 			reel_cv.itemconfig(
 				reel_stats_item,
-				text=f'Scrolling live ({format_sim_time(state.sim_minutes)})...\nTotal Today: {state.timeScrolling:.0f} min (Limit: {state.dailyGoal:.0f} min)\nClean Streak: {state.cleanScore}',
+				text=f'Scrolling live ({format_sim_time(state.sim_minutes)})...\nTotal Today: {effective_scrolled:.0f} min (Limit: {state.dailyGoal:.1f} min)\nClean Streak: {state.cleanScore}',
 			)
 
 		if state.sim_minutes >= 1440:
@@ -1153,6 +1465,7 @@ def tick_clock():
 
 
 show_screen(home_screen, 'home')
+request_ai_suggestions()
 root.after(150, open_starting_survey)
 root.after(200, tick_clock)
 root.mainloop()
