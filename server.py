@@ -1,7 +1,6 @@
 import json
 import asyncio
 import websockets
-import os
 
 CONNECTED_CLIENTS = set()
 JSON_FILE = "data_storage.json"
@@ -28,35 +27,29 @@ async def handle_client(websocket):
         CONNECTED_CLIENTS.remove(websocket)
         print("\n[-] Chrome extension disconnected.")
 
-async def send_terminal_input():
-    loop = asyncio.get_running_loop()
-
+async def send_periodically(interval=1):
+    """Reads JSON and broadcasts data to connected extensions every `interval` seconds."""
     while True:
-        await loop.run_in_executor(None, input, "Press Enter to send variable > ")
-
-        # Read fresh values from JSON every time you press Enter
         usage_log = load_log()
-        total = usage_log.get("total", 0)
-        daily_limit = usage_log.get("daily_limit", 0)
-
-        my_variable = {
-            "total": total,
-            "daily_limit": daily_limit
+        payload_data = {
+            "total": usage_log.get("total", 0),
+            "daily_limit": usage_log.get("daily_limit", 0)
         }
 
-        payload = json.dumps(my_variable)
+        payload = json.dumps(payload_data)
 
         if CONNECTED_CLIENTS:
             websockets.broadcast(CONNECTED_CLIENTS, payload)
-            print(f"[+] Sent variable content: {payload}")
-        else:
-            print("[-] No Chrome extension connected to receive data.")
+            print(f"[+] Broadcasted: {payload}")
+
+        # Wait for 1 second before reading and sending again
+        await asyncio.sleep(interval)
 
 async def main():
     async with websockets.serve(handle_client, "127.0.0.1", 5000):
         print("WebSocket server listening on ws://127.0.0.1:5000")
         print("Press Enter in terminal to broadcast JSON variables to connected extensions.\n")
-        await send_terminal_input()
+        await send_periodically(1)
 
 if __name__ == "__main__":
     try:
