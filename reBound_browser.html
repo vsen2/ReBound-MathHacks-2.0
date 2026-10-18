@@ -460,7 +460,7 @@
 			<div>
 				<div class="widget-tag" style="margin-bottom: 6px;">📸 INSTAGRAM REELS SIMULATOR</div>
 				<p style="font-size: 0.92rem; line-height: 1.4;">
-					Simulating Instagram scrolling adds scroll time and resets your <strong>Clean Streak</strong> to <strong>0</strong> if you go over your recommended limit.
+					Simulating Instagram scrolling adds scroll time
 				</p>
 			</div>
 			<div style="display: flex; gap: 10px; flex-wrap: wrap;">
@@ -942,7 +942,7 @@
 			const streakEl = document.getElementById('widgetStreak');
 			const statusEl = document.getElementById('widgetStatus');
 			if (state.cleanScore > 0) {
-				streakEl.textContent = `Clean Streak: ${state.cleanScore} 🔥`;
+				streakEl.textContent = `Clean Streak: ${state.cleanScore}`;
 				streakEl.style.color = colors.text;
 				statusEl.textContent = `Day ${state.current_day} • ${timeStr} — Keep avoiding doomscrolling!`;
 			} else {
