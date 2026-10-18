@@ -3,8 +3,8 @@ let currentSecondsSpent = 0;
 let dailyGoalMinutes = 30;
 let requiredClicks = 1;
 let currentClicks = 0;
+let socket = null;
 
-// Array of motivational cards/quotes to break the doomscroll trance during friction
 const frictionMessages = [
   {
     type: "quote",
@@ -28,20 +28,21 @@ const frictionMessages = [
   }
 ];
 
-// 1. Fetch live data from your Python backend / API
-async function fetchReboundData() {
-  try {
-    const response = await fetch("http://127.0.0.1:5000/api/status");
-    if (!response.ok) throw new Error("Server offline");
-    return await response.json();
-  } catch (err) {
-    return {
-      dailyGoal: 30,
-      timeScrolling: 15,
-      sigmoidRiskScore: 0.5
-    };
+// 1. listener to background.js
+chrome.runtime.onMessage.addListener((message) => {
+  if (message.type === "UPDATE_UI" && message.data) {
+    const data = message.data;
+
+    if (data.total !== undefined) {
+      currentSecondsSpent = data.total;
+    }
+    if (data.daily_limit !== undefined) {
+      dailyGoalMinutes = data.daily_limit;
+    }
+
+    updateTopBanner();
   }
-}
+});
 
 // 2. Format total seconds into a clean "Xm Ys" format
 function formatTime(totalSeconds) {
@@ -79,51 +80,20 @@ function updateTopBanner() {
     document.documentElement.appendChild(banner);
   }
 
-  const logoUrl = chrome.runtime.getURL("logo.png");
+  const logoUrl = getSafeExtensionUrl("logo.png");
+  const logoHtml = logoUrl ? `<img src="${logoUrl}" style="width: 22px; height: 22px; object-fit: contain;" />` : '';
 
   banner.innerHTML = `
-    <img src="${logoUrl}" style="width: 22px; height: 22px; object-fit: contain;" />
+    ${logoHtml}
     <span>Time Spent: <strong style="color: #7DD3FC; font-variant-numeric: tabular-nums;">${formatTime(currentSecondsSpent)}</strong> / <span style="color: #FDE68A;">${dailyGoalMinutes}m limit</span></span>
   `;
 }
 
-// 4. Start live 1-second timer ticker
-async function startBannerTracking() {
-  const initialData = await fetchReboundData();
-  currentSecondsSpent = Math.round((initialData.timeScrolling || 0) * 60);
-  dailyGoalMinutes = initialData.dailyGoal || 30;
-
-  updateTopBanner();
-
-  if (!trackerInterval) {
-    trackerInterval = setInterval(() => {
-      currentSecondsSpent += 1;
-      updateTopBanner();
-
-      if (currentSecondsSpent % 30 === 0) {
-        syncWithPythonServer();
-      }
-    }, 1000);
-  }
-}
-
-async function syncWithPythonServer() {
-  const latestData = await fetchReboundData();
-  if (latestData && latestData.dailyGoal) {
-    dailyGoalMinutes = latestData.dailyGoal;
-  }
-}
-
-// 5. Full-Screen Blocker with Sigmoid-Calculated Friction
-async function showReboundBlocker(domain) {
+// 4. Full-Screen Blocker
+function showReboundBlocker(domain) {
   if (document.getElementById("rebound-blocker")) return;
 
-  const liveData = await fetchReboundData();
-  currentSecondsSpent = Math.round((liveData.timeScrolling || 0) * 60);
-  dailyGoalMinutes = liveData.dailyGoal || 30;
-  
-  // Mathematical friction calculation: Probability of relapse * 20 (minimum 1 click)
-  const relapseProb = liveData.sigmoidRiskScore || 0.5;
+  const relapseProb = 0.5;
   requiredClicks = Math.max(1, Math.round(relapseProb * 20));
   currentClicks = 0;
 
@@ -171,7 +141,6 @@ async function showReboundBlocker(domain) {
         <p style="margin: 4px 0 0 0; color: #94A3B8; font-size: 14px;">Access to <strong>${domain}</strong> is paused.</p>
       </div>
 
-      <!-- Motivational Friction Card -->
       <div id="friction-container" style="
         background: #0F172A;
         border: 1px solid #334155;
@@ -247,9 +216,8 @@ async function showReboundBlocker(domain) {
       sureBtn.style.transform = "scale(0.96)";
       setTimeout(() => sureBtn.style.transform = "scale(1)", 100);
     } else {
-      // Threshold met! Remove overlay and start live counter banner in top right.
       overlay.remove();
-      startBannerTracking();
+      updateTopBanner();
     }
   });
 
@@ -259,9 +227,14 @@ async function showReboundBlocker(domain) {
 }
 
 function initReboundBlocker() {
+  // Connect to Python WebSocket server
+  connectWebSocket();
+
   const hostname = window.location.hostname;
   if (hostname.includes("instagram.com") || hostname.includes("tiktok.com")) {
     showReboundBlocker(hostname);
+  } else {
+    updateTopBanner();
   }
 }
 
@@ -269,4 +242,16 @@ if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initReboundBlocker);
 } else {
   initReboundBlocker();
+}
+
+function getSafeExtensionUrl(path) {
+  try {
+    if (chrome?.runtime?.id) {
+      return chrome.runtime.getURL(path);
+    }
+  } catch (e) {
+    console.warn("[Rebound] Extension context invalidated. Cleaning up.");
+    if (socket) socket.close();
+  }
+  return ""; // Fallback empty string if context is dead
 }
