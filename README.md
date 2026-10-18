@@ -43,38 +43,37 @@ This model treats excessive social media use as a dynamic emotional regulation i
 
 ---
 
-### Quick Local Setup
+## Quick Local Setup
 
-#### 1. Extension Setup (Chrome)
+### 1. Chrome Extension Setup
 1. **Download or Clone** this repository to your local machine.
 2. Open **Google Chrome** and navigate to `chrome://extensions/`.
 3. Toggle **Developer mode** ON in the top-right corner.
-4. Click **Load unpacked** and select the `Rebound-extension` directory.
+4. Click **Load unpacked** and select the `Rebound-extension` directory from the cloned repository.
 
 ---
 
-#### 2. Local Python Backend Server Setup
-
+### 2. Local Python Backend Server Setup
 The Python backend acts as a WebSocket server to process user metrics, handle live telemetry tracking, and compute mathematical models in real time.
 
-**Step A: Open Terminal / Command Prompt**
-* **Windows:** Open **Command Prompt** (or PowerShell) and navigate to the project folder:
-  ```cmd
-  cd path/to/Rebound
----
+Open your **Terminal** (macOS/Linux) or **Command Prompt/PowerShell** (Windows), navigate to the project folder, install the dependencies, and start the server using the commands below:
 
-## Troubleshooting
+```bash
+# 1. Navigate to the project directory
+cd path/to/Rebound
 
-Connection Errors / Extension not responding: Make sure that start.py is actively running in your terminal before you try using the extension features.
+# 2. Install all required dependencies
+pip install -r requirements.txt
 
----
+# 3. Start the backend server
+python start.py
 
 ## Planning Process and Project Research
 See the mathematics and neuroscience behind our model here:
 https://docs.google.com/document/d/1aGy8eP8ZeS42rUoAZx-p-r2IdaPxZM-8INkOuI_EfVg/edit?usp=sharing
 
 ---
-
+```
 <div align="center">
   <p>Built for mindful scrolling</p>
   by Shaugnessy Pump, Ricky Wu, Victor Sen, Kaito Nagawaka 
