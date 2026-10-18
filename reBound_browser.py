@@ -18,8 +18,8 @@ def read_storage():
 		except Exception:
 			pass
 	return {
-		'Instagram': 28,
-		'Tiktok': 5,
+		'Instagram': 0,
+		'Tiktok': 0,
 		'Tstart': 60.0,
 		'Tgoal': 30.0,
 		'initial_goal': 30.0,
