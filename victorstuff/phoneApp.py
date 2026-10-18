@@ -113,7 +113,7 @@ def make_pill_button(
 # --- Main Phone Simulator Window ---
 root = tk.Tk()
 root.title('reBound')
-root.geometry('430x830')
+root.geometry('430x790')
 root.resizable(False, False)
 root.configure(bg='#d1e0e6')
 
@@ -135,15 +135,15 @@ def on_app_close():
 
 root.protocol('WM_DELETE_WINDOW', on_app_close)
 
-chassis_canvas = tk.Canvas(root, width=430, height=830, bg='#d1e0e6', highlightthickness=0)
+chassis_canvas = tk.Canvas(root, width=430, height=790, bg='#d1e0e6', highlightthickness=0)
 chassis_canvas.place(x=0, y=0)
 draw_rounded_rect(
-	chassis_canvas, 14, 10, 416, 820, r=44, fill='#bdd0d8', outline='#e2edf1', width=2
+	chassis_canvas, 14, 24, 416, 766, r=44, fill='#bdd0d8', outline='#e2edf1', width=2
 )
-draw_rounded_rect(chassis_canvas, 20, 16, 410, 814, r=40, fill='#e1edf1', outline='')
+draw_rounded_rect(chassis_canvas, 20, 30, 410, 760, r=40, fill='#e1edf1', outline='')
 
 screen_frame = tk.Frame(root, bg='#eaf3f5')
-screen_frame.place(x=28, y=26, width=374, height=776)
+screen_frame.place(x=28, y=42, width=374, height=706)
 
 # Top status bar
 status_bar = tk.Frame(screen_frame, bg='#e1edf1', height=36)
@@ -658,7 +658,7 @@ inputs_panel = tk.Frame(
 inputs_panel.pack(fill='both', expand=True, padx=12, pady=(2, 6))
 
 tk.Label(
-	inputs_panel, text='Risk Score Factors', font=('Segoe UI', 10, 'bold'), bg='#f7fbfc', fg='#214d5b'
+	inputs_panel, text='Current Risk Score Factors', font=('Segoe UI', 10, 'bold'), bg='#f7fbfc', fg='#214d5b'
 ).grid(row=0, column=0, columnspan=2, sticky='w', pady=(0, 3))
 
 risk_field_defs = [
@@ -680,30 +680,32 @@ for idx, (key, label_text, default_v) in enumerate(risk_field_defs, start=1):
 		width=13,
 		font=('Segoe UI', 9, 'bold'),
 		bg='#eaf3f5',
+		readonlybackground='#eaf3f5',
 		fg='#214d5b',
-		insertbackground='#528bdc',
 		relief='flat',
 		highlightthickness=1,
 		highlightbackground='#cbdde3',
-		highlightcolor='#528bdc',
+		highlightcolor='#cbdde3',
 		justify='right',
 	)
 	ent.grid(row=idx, column=1, sticky='e', padx=(8, 0), pady=2, ipady=2)
 	ent.insert(0, default_v)
-	ent.bind('<ButtonRelease-1>', lambda e, w=ent: w.select_range(0, tk.END))
-	ent.bind('<Return>', lambda e: apply_variable_inputs())
+	ent.config(state='readonly')
 	var_entries[key] = ent
 
 inputs_panel.columnconfigure(0, weight=1)
 
-status_msg = tk.Label(inputs_panel, text='', font=('Segoe UI', 8), fg='#c95353', bg='#f7fbfc')
-status_msg.grid(row=len(risk_field_defs) + 1, column=0, columnspan=2)
-
-
 goal_entries = {}
 
 
-def sync_entries_from_state():
+def set_readonly_entry_value(entry, value):
+	entry.config(state='normal')
+	entry.delete(0, tk.END)
+	entry.insert(0, value)
+	entry.config(state='readonly')
+
+
+def sync_risk_entries_from_state():
 	values_map = {
 		'nightScrolling': f'{state.nightScrolling:g}',
 		'psychState': f'{state.psychState:.3f}'.rstrip('0').rstrip('.') if state.psychState else '0',
@@ -713,9 +715,11 @@ def sync_entries_from_state():
 		'Dopamine': f'{state.Dopamine:.0f}%',
 	}
 	for k, val in values_map.items():
-		var_entries[k].delete(0, tk.END)
-		var_entries[k].insert(0, val)
+		set_readonly_entry_value(var_entries[k], val)
 
+
+def sync_entries_from_state():
+	sync_risk_entries_from_state()
 	if goal_entries:
 		goal_values_map = {
 			'day': f'{state.current_day:g}',
@@ -727,53 +731,8 @@ def sync_entries_from_state():
 		for k, val in goal_values_map.items():
 			goal_entries[k].delete(0, tk.END)
 			goal_entries[k].insert(0, val)
-
-
-def apply_variable_inputs():
-	try:
-		state.nightScrolling = max(0.0, float(var_entries['nightScrolling'].get()))
-		state.psychState = min(1.0, max(0.0, float(var_entries['psychState'].get())))
-		state.timeScrolling = max(0.0, float(var_entries['timeScrolling'].get()))
-		entered_goal = float(var_entries['dailyGoal'].get())
-		state.timeBetweenLogins = max(0.0, float(var_entries['timeBetweenLogins'].get()))
-		dop_raw = var_entries['Dopamine'].get().strip().rstrip('%').strip()
-		state.Dopamine = min(100.0, max(0.0, float(dop_raw)))
-	except ValueError:
-		status_msg.config(text='Enter valid numbers in all fields.')
-		return
-
-	if entered_goal <= 0:
-		status_msg.config(text='Daily Limit must be greater than 0.')
-		return
-
-	state.dailyGoal = entered_goal
-	state.recalculate()
-
-	if max(state.timeScrolling, state.nightScrolling) > state.dailyGoal:
-		state.cleanScore = 0
-
-	state.sync_to_storage()
-	sync_entries_from_state()
-	status_msg.config(text='')
-	refresh_ui(redraw_charts=True)
-
-
 btn_row = tk.Frame(inputs_panel, bg='#f7fbfc')
-btn_row.grid(row=len(risk_field_defs) + 2, column=0, columnspan=2, pady=(4, 2))
-
-make_pill_button(
-	btn_row,
-	text='Update Risk',
-	command=apply_variable_inputs,
-	width=130,
-	height=30,
-	bg_parent='#f7fbfc',
-	fill='#dce9fa',
-	hover_fill='#c7ddf6',
-	fg='#214d5b',
-	font=('Segoe UI', 9, 'bold'),
-	radius=15,
-).pack(side='left', padx=6)
+btn_row.grid(row=len(risk_field_defs) + 1, column=0, columnspan=2, pady=(4, 2))
 
 make_pill_button(
 	btn_row,
@@ -1364,6 +1323,7 @@ def refresh_ui(redraw_charts=True):
 		return
 
 	state.recalculate()
+	sync_risk_entries_from_state()
 	clock_status_lbl.config(text=format_sim_time(state.sim_minutes))
 	day_status_lbl.config(text=f'Day {state.current_day} • 5G')
 
