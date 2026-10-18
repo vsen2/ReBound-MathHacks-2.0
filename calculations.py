@@ -13,8 +13,7 @@ DOPAMINE_ITEMS = [
 	('I got 7+ hours of uninterrupted sleep last night.', 30),
 	('I avoided looking at screens for at least 1 hour before bed.', 20),
 	('I spent time outside in natural sunlight or exercised yesterday.', 25),
-	('I engaged in an offline, deep-focus hobby (e.g., reading a physical book, playing an instrument, sketching).', 25,
-	),
+	('I engaged in an offline, deep-focus hobby (e.g., reading a physical book, playing an instrument, sketching).', 25,),
 ]
 
 def calc_daily_goal(day, Tstart, Tgoal, timeBetweenLogins=0.0, relapseProbability=0.5):
@@ -55,6 +54,11 @@ def calc_dopamine_from_survey(selections):
 	return float(
 		sum(pts for checked, (_, pts) in zip(selections, DOPAMINE_ITEMS) if checked)
 	)
+
+
+def calc_psych_state(craving=0.0, withdrawal=0.0, fomo=0.0, stress=0.0):
+	"""Calculate psychState (0 to 1) from the 4 daily survey sliders (0 to 5 each)."""
+	return float(craving) / 20.0 + float(withdrawal) / 20.0 + float(fomo) / 20.0 + float(stress) / 20.0
 
 
 def get_sigmoid_curve(riskScore, num_points=200):
@@ -105,6 +109,10 @@ class ReBoundState:
 
 		# Daily Risk Score variables
 		self.nightScrolling = 0.0
+		self.craving = 0.0
+		self.withdrawal = 0.0
+		self.fomo = 0.0
+		self.stress = 0.0
 		self.psychState = 0.0
 		self.timeScrolling = 0.0
 		self.dailyGoal = 30.0
@@ -150,18 +158,25 @@ class ReBoundState:
 		return self.dailyGoal
 
 	def set_starting_survey(self, t_start, t_goal):
-		"""Save pre-app Tstart and Tgoal and calculate Day 1 dailyGoal using calc_daily_goal."""
-		self.Tstart = float(t_start)
-		self.Tgoal = float(t_goal)
+		"""Save pre-app Tstart and Tgoal (capped at 60*24 min and Tgoal <= Tstart) and calculate Day 1 dailyGoal."""
+		max_mins = 60.0 * 24.0
+		self.Tstart = min(max_mins, float(t_start))
+		self.Tgoal = min(self.Tstart, max_mins, float(t_goal))
 		self.timeScrolling = 0.0
 		self.cleanScore = 1
 		self.recalculate()
 		self.update_daily_goal()
 
-	def apply_dopamine_survey(self, selections):
-		"""Save checkbox selections and recalculate Dopamine %, risk, and recommended dailyGoal."""
+	def apply_dopamine_survey(self, selections, craving=None, withdrawal=None, fomo=None, stress=None):
+		"""Save checkbox selections and psych sliders and recalculate Dopamine %, psychState, risk, and dailyGoal."""
 		self.dopamine_selections = list(selections)
 		self.Dopamine = calc_dopamine_from_survey(self.dopamine_selections)
+		if all(v is not None for v in (craving, withdrawal, fomo, stress)):
+			self.craving = float(craving)
+			self.withdrawal = float(withdrawal)
+			self.fomo = float(fomo)
+			self.stress = float(stress)
+			self.psychState = calc_psych_state(self.craving, self.withdrawal, self.fomo, self.stress)
 		self.recalculate()
 		self.update_daily_goal()
 

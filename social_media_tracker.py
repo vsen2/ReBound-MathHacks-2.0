@@ -4,7 +4,7 @@ import pygetwindow as gw
 
 # Target platform keywords to track
 TARGET_PLATFORMS = ["Instagram", "Tiktok"]
-JSON_FILE = "usage_log.json"
+JSON_FILE = "data_storage.json"
 
 
 def load_log(filename=JSON_FILE):
@@ -32,9 +32,9 @@ def monitor_screen_time(interval=1):
     while True:
       try:
         active_window = gw.getActiveWindow()
+        
         if active_window and active_window.title:
           window_title = active_window.title.lower()
-
           for platform in TARGET_PLATFORMS:
             if platform.lower() in window_title:
               usage_log[platform] += interval
@@ -42,7 +42,11 @@ def monitor_screen_time(interval=1):
                   f"Logged {interval}s on {platform}. Total:"
                   f" {usage_log[platform]}s"
               )
+          
               save_log(usage_log)  # Save after every update
+
+        usage_log["total"] = usage_log["Instagram"] + usage_log["Tiktok"] + 1
+            
       except Exception:
         # Handle window focus transitions gracefully
         pass
