@@ -52,7 +52,8 @@ This model treats excessive social media use as a dynamic emotional regulation i
 5. Download Libraries in terminal: pip install pygetwindow websockets matplotlib numpy
 6. Run the "start.py" file
 
-
+Troubleshooting
+    Connection Errors / Extension not responding: Make sure that start.py is actively running in your terminal before you try using the extension features.
 ---
 
 ## Planning Process and Project Research
