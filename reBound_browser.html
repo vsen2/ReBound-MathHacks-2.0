@@ -18,6 +18,8 @@
 			--border-color: #98cede;
 			--subtle-bg: #d6e7cd;
 			--danger-color: #d9534f;
+			--button-white: #e6f8ff;
+			--button-light-blue: #cde7ff;
 		}
 		* {
 			box-sizing: border-box;
@@ -93,7 +95,7 @@
 			font-size: 0.95rem;
 		}
 		.pill-btn {
-			background: var(--subtle-bg);
+			background: var(--button-light-blue);
 			color: var(--text-color);
 			border: 2px solid var(--border-color);
 			border-radius: 999px;
@@ -109,7 +111,7 @@
 			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 		}
 		.btn-secondary {
-			background: var(--section-bg);
+			background: var(--button-light-blue);
 			color: var(--text-color);
 		}
 
@@ -200,7 +202,7 @@
 		}
 		.tab-btn {
 			border: none;
-			background: transparent;
+			background: var(--button-light-blue);
 			color: var(--text-color);
 			padding: 9px 20px;
 			border-radius: 999px;
@@ -210,7 +212,7 @@
 			transition: background 0.15s;
 		}
 		.tab-btn.active {
-			background: var(--subtle-bg);
+			background: var(--button-light-blue);
 			color: var(--text-color);
 		}
 
@@ -258,14 +260,26 @@
 		}
 		.goal-values-grid {
 			display: grid;
-			grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+			grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
 			gap: 18px;
+		}
+		@media (max-width: 640px) {
+			.goal-values-grid { grid-template-columns: 1fr; }
 		}
 		.goal-value {
 			background: var(--subtle-bg);
 			border-radius: 20px;
 			padding: 28px;
 			text-align: center;
+		}
+		.goal-values-grid > .goal-value:not(.goal-value-primary) {
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+		}
+		.goal-value-primary {
+			background: var(--button-light-blue);
+			padding: 36px 28px;
 		}
 		.goal-value-label {
 			display: block;
@@ -276,6 +290,14 @@
 		.goal-value-number {
 			font-size: 2rem;
 			font-weight: 800;
+		}
+		.goal-value-primary .goal-value-label {
+			font-size: 1.15rem;
+			text-transform: uppercase;
+			letter-spacing: 0.06em;
+		}
+		.goal-value-primary .goal-value-number {
+			font-size: clamp(2.5rem, 5vw, 3.5rem);
 		}
 		canvas.plot-canvas {
 			width: 100%;
@@ -483,7 +505,7 @@
 			<h2>Current Results</h2>
 		</div>
 		<div class="goal-values-grid">
-			<div class="goal-value"><span class="goal-value-label">Daily goal</span><span class="goal-value-number" id="goalValueDaily">70.5 min</span></div>
+			<div class="goal-value goal-value-primary"><span class="goal-value-label">Today's Daily Limit</span><span class="goal-value-number" id="goalValueDaily">70.5 min</span></div>
 			<div class="goal-value"><span class="goal-value-label">Relapse probability</span><span class="goal-value-number" id="goalValueRelapse">6.0%</span></div>
 		</div>
 	</section>
@@ -564,25 +586,22 @@
 			<label class="check-item"><input type="checkbox" class="dop-check" data-pts="25" /> <span>I spent time outside in natural sunlight or exercised yesterday.</span></label>
 			<label class="check-item"><input type="checkbox" class="dop-check" data-pts="25" /> <span>I engaged in an offline, deep-focus hobby (e.g., reading a physical book, playing an instrument, sketching).</span></label>
 
-			<div class="modal-section-title" style="display: flex; justify-content: space-between; align-items: center;">
-				<span>Psychological State Sliders (0 – 5)</span>
-				<span id="modalPsychPreview">Psych Level: 0.00</span>
-			</div>
+			<div class="modal-section-title">Psychological State Sliders (0 – 5)</div>
 			<div class="slider-item">
 				<div class="slider-top"><span>Craving</span><span id="val_craving">0</span></div>
-				<input type="range" id="slider_craving" min="0" max="5" step="0.5" value="0" oninput="updatePsychSlidersPreview()" />
+				<input type="range" id="slider_craving" min="0" max="5" step="0.5" value="0" oninput="updatePsychSliders()" />
 			</div>
 			<div class="slider-item">
 				<div class="slider-top"><span>Withdrawal</span><span id="val_withdrawal">0</span></div>
-				<input type="range" id="slider_withdrawal" min="0" max="5" step="0.5" value="0" oninput="updatePsychSlidersPreview()" />
+				<input type="range" id="slider_withdrawal" min="0" max="5" step="0.5" value="0" oninput="updatePsychSliders()" />
 			</div>
 			<div class="slider-item">
 				<div class="slider-top"><span>FOMO (Fear of Missing Out)</span><span id="val_fomo">0</span></div>
-				<input type="range" id="slider_fomo" min="0" max="5" step="0.5" value="0" oninput="updatePsychSlidersPreview()" />
+				<input type="range" id="slider_fomo" min="0" max="5" step="0.5" value="0" oninput="updatePsychSliders()" />
 			</div>
 			<div class="slider-item">
 				<div class="slider-top"><span>Stress</span><span id="val_stress">0</span></div>
-				<input type="range" id="slider_stress" min="0" max="5" step="0.5" value="0" oninput="updatePsychSlidersPreview()" />
+				<input type="range" id="slider_stress" min="0" max="5" step="0.5" value="0" oninput="updatePsychSliders()" />
 			</div>
 
 			<div style="margin-top: 16px;">
@@ -626,7 +645,7 @@
 			return craving / 20.0 + withdrawal / 20.0 + fomo / 20.0 + stress / 20.0;
 		}
 
-		function updatePsychSlidersPreview() {
+		function updatePsychSliders() {
 			const c = parseFloat(document.getElementById('slider_craving').value) || 0;
 			const w = parseFloat(document.getElementById('slider_withdrawal').value) || 0;
 			const f = parseFloat(document.getElementById('slider_fomo').value) || 0;
@@ -636,7 +655,6 @@
 			document.getElementById('val_fomo').textContent = f;
 			document.getElementById('val_stress').textContent = s;
 			const psych = calcPsychStateFromSliders(c, w, f, s);
-			document.getElementById('modalPsychPreview').textContent = `Psych Level: ${psych.toFixed(2)}`;
 			state.craving = c;
 			state.withdrawal = w;
 			state.fomo = f;
@@ -1140,7 +1158,7 @@
 			document.getElementById('slider_withdrawal').value = state.withdrawal;
 			document.getElementById('slider_fomo').value = state.fomo;
 			document.getElementById('slider_stress').value = state.stress;
-			updatePsychSlidersPreview();
+			updatePsychSliders();
 			document.getElementById('newDayModal').classList.add('open');
 		}
 
