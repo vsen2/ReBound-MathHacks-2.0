@@ -54,7 +54,9 @@ def monitor_screen_time(interval=1):
                             )
 
                     # Update total screen time calculated from tracked platforms
-                    usage_log["total"] = usage_log["instagram"] + usage_log["tiktok"]
+                    usage_log["total"] = sum(
+                        usage_log.get(p, 0) for p in TARGET_PLATFORMS
+                    )
 
                     save_log(usage_log)
 
@@ -71,4 +73,3 @@ def monitor_screen_time(interval=1):
 
 if __name__ == "__main__":
     monitor_screen_time(interval=1)
-
