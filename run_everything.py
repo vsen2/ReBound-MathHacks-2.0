@@ -2,7 +2,7 @@ import os
 import subprocess
 import sys
 
-files = ["social_media_tracker.py", "server.py", "reBound_browser.py"]
+files = ["social_media_tracker.py", "server.py", "reBound_browser.py"] 
 
 processes = []
 
