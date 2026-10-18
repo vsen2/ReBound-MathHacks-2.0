@@ -437,8 +437,45 @@
 		}
 		.slider-item input[type="range"] {
 			width: 100%;
+			background: transparent;
+			border: none;
+			box-shadow: none;
 			accent-color: var(--accent-secondary);
 			cursor: pointer;
+			appearance: none;
+			-webkit-appearance: none;
+		}
+		.slider-item input[type="range"]::-webkit-slider-runnable-track {
+			height: 8px;
+			background: var(--section-bg);
+			border: none;
+			outline: none;
+			box-shadow: none;
+			border-radius: 999px;
+		}
+		.slider-item input[type="range"]::-webkit-slider-thumb {
+			width: 16px;
+			height: 16px;
+			margin-top: -4px;
+			background: var(--accent-secondary);
+			border: none;
+			border-radius: 50%;
+			-webkit-appearance: none;
+		}
+		.slider-item input[type="range"]::-moz-range-track {
+			height: 8px;
+			background: var(--section-bg);
+			border: none;
+			outline: none;
+			box-shadow: none;
+			border-radius: 999px;
+		}
+		.slider-item input[type="range"]::-moz-range-thumb {
+			width: 16px;
+			height: 16px;
+			background: var(--accent-secondary);
+			border: none;
+			border-radius: 50%;
 		}
 	</style>
 </head>

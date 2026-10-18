@@ -186,7 +186,6 @@ async function showReboundBlocker(domain) {
         align-items: center;
         gap: 8px;
       ">
-        <span style="font-size: 20px;">🧠</span>
         <p id="friction-text" style="margin: 0; color: #F8FAFC; font-size: 15px; font-weight: 600; line-height: 1.4;">
           “${frictionMessages[0].text}”
         </p>
