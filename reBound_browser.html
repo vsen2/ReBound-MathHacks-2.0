@@ -8,7 +8,7 @@
 	<style>
 		:root {
 			/* Unified colors — change these two variables to recolor all sections/graphs and all text */
-			--page-bg: #9ec8f4;          /* Overall page background */
+			--page-bg: #bfd0c2;          /* Overall page background */
 			--section-bg: #bee7fbd6;     /* Unified background for all sections, cards, modals, and graphs */
 			--text-color: #2f555e;       /* Unified text color across all sections and graphs */
 
@@ -16,10 +16,10 @@
 			--accent-color: #5b9279;
 			--accent-secondary: #5282dc;
 			--border-color: #98cede;
-			--subtle-bg: #d6e7cd;
+			--subtle-bg: #def6d0;
 			--danger-color: #d9534f;
 			--button-white: #e6f8ff;
-			--button-light-blue: #cde7ff;
+			--button-light-blue: #dbf4cf;
 		}
 		* {
 			box-sizing: border-box;
@@ -328,13 +328,9 @@
 			color: var(--text-color);
 			font-weight: 600;
 		}
-		.form-row input {
+		.form-value {
 			width: 132px;
-			background: var(--section-bg);
-			border: 2px solid var(--border-color);
 			color: var(--text-color);
-			padding: 6px 10px;
-			border-radius: 12px;
 			text-align: right;
 			font-weight: 800;
 			font-size: 0.92rem;
@@ -529,33 +525,25 @@
 		</div>
 	</section>
 
-	<!-- Interactive Variable Inputs for Both Equations -->
+	<!-- Current Variables -->
 	<section class="inputs-grid">
 		<div class="section-card">
 			<h3 style="margin-bottom: 10px; font-size: 1.08rem;">Risk Score Factors</h3>
-			<div class="form-row"><label>Night Scrolling (min)</label><input id="in_nightScrolling" type="text" value="0" /></div>
-			<div class="form-row"><label>Stress / Psych Level (0-1)</label><input id="in_psychState" type="text" value="0" /></div>
-			<div class="form-row"><label>Total Scrolling Today (min)</label><input id="in_timeScrolling" type="text" value="0" /></div>
-			<div class="form-row"><label>Daily Limit (min)</label><input id="in_dailyGoal" type="text" value="30" /></div>
-			<div class="form-row"><label>Time Between Logins (min)</label><input id="in_timeBetweenLogins" type="text" value="0" /></div>
-			<div class="form-row"><label>Healthy Dopamine (%)</label><input id="in_Dopamine" type="text" value="50%" /></div>
-			<div class="card-actions">
-				<button class="pill-btn" onclick="applyRiskInputs()">Update Risk</button>
-				<span class="err-msg" id="riskErr"></span>
-			</div>
+			<div class="form-row"><label>Night Scrolling (min)</label><span class="form-value" id="in_nightScrolling">0</span></div>
+			<div class="form-row"><label>Stress / Psych Level (0-1)</label><span class="form-value" id="in_psychState">0</span></div>
+			<div class="form-row"><label>Total Scrolling Today (min)</label><span class="form-value" id="in_timeScrolling">0</span></div>
+			<div class="form-row"><label>Daily Limit (min)</label><span class="form-value" id="in_dailyGoal">30</span></div>
+			<div class="form-row"><label>Time Between Logins (min)</label><span class="form-value" id="in_timeBetweenLogins">0</span></div>
+			<div class="form-row"><label>Healthy Dopamine (%)</label><span class="form-value" id="in_Dopamine">50%</span></div>
 		</div>
 
 		<div class="section-card">
 			<h3 style="margin-bottom: 10px; font-size: 1.08rem;">Daily Goal Settings</h3>
-			<div class="form-row"><label>Current Day</label><input id="goal_day" type="text" value="1" /></div>
-			<div class="form-row"><label>Starting Time (min)</label><input id="goal_Tstart" type="text" value="60" /></div>
-			<div class="form-row"><label>Target Goal (min)</label><input id="goal_Tgoal" type="text" value="30" /></div>
-			<div class="form-row"><label>Time Between Logins (min)</label><input id="goal_timeBetweenLogins" type="text" value="0" /></div>
-			<div class="form-row"><label>Relapse Risk (0-1)</label><input id="goal_relapseProbability" type="text" value="0.500" /></div>
-			<div class="card-actions">
-				<button class="pill-btn" onclick="applyGoalInputs()">Update Daily Goal</button>
-				<span class="err-msg" id="goalErr"></span>
-			</div>
+			<div class="form-row"><label>Current Day</label><span class="form-value" id="goal_day">1</span></div>
+			<div class="form-row"><label>Starting Time (min)</label><span class="form-value" id="goal_Tstart">60</span></div>
+			<div class="form-row"><label>Target Goal (min)</label><span class="form-value" id="goal_Tgoal">30</span></div>
+			<div class="form-row"><label>Time Between Logins (min)</label><span class="form-value" id="goal_timeBetweenLogins">0</span></div>
+			<div class="form-row"><label>Relapse Risk (0-1)</label><span class="form-value" id="goal_relapseProbability">0.500</span></div>
 		</div>
 	</section>
 
@@ -697,7 +685,7 @@
 					if (typeof data.current_day === 'number' && data.current_day >= 1) state.current_day = Math.round(data.current_day);
 					if (typeof data.sim_minutes === 'number') state.sim_minutes = data.sim_minutes;
 					updateDailyGoalFromState();
-					syncInputsFromState();
+					syncVariableDisplays();
 					refreshUI(true);
 				}
 			} catch (_) {
@@ -795,19 +783,19 @@
 			return `${hrs12}:${String(mins).padStart(2, '0')} ${period}`;
 		}
 
-		function syncInputsFromState() {
-			document.getElementById('in_nightScrolling').value = state.nightScrolling;
-			document.getElementById('in_psychState').value = Number(state.psychState.toFixed(3));
-			document.getElementById('in_timeScrolling').value = state.timeScrolling;
-			document.getElementById('in_dailyGoal').value = state.dailyGoal.toFixed(1);
-			document.getElementById('in_timeBetweenLogins').value = state.timeBetweenLogins;
-			document.getElementById('in_Dopamine').value = `${Math.round(state.Dopamine)}%`;
+		function syncVariableDisplays() {
+			document.getElementById('in_nightScrolling').textContent = state.nightScrolling;
+			document.getElementById('in_psychState').textContent = Number(state.psychState.toFixed(3));
+			document.getElementById('in_timeScrolling').textContent = state.timeScrolling;
+			document.getElementById('in_dailyGoal').textContent = state.dailyGoal.toFixed(1);
+			document.getElementById('in_timeBetweenLogins').textContent = state.timeBetweenLogins;
+			document.getElementById('in_Dopamine').textContent = `${Math.round(state.Dopamine)}%`;
 
-			document.getElementById('goal_day').value = state.current_day;
-			document.getElementById('goal_Tstart').value = state.Tstart;
-			document.getElementById('goal_Tgoal').value = state.Tgoal;
-			document.getElementById('goal_timeBetweenLogins').value = state.timeBetweenLogins;
-			document.getElementById('goal_relapseProbability').value = state.sigmoidRiskScore.toFixed(3);
+			document.getElementById('goal_day').textContent = state.current_day;
+			document.getElementById('goal_Tstart').textContent = state.Tstart;
+			document.getElementById('goal_Tgoal').textContent = state.Tgoal;
+			document.getElementById('goal_timeBetweenLogins').textContent = state.timeBetweenLogins;
+			document.getElementById('goal_relapseProbability').textContent = state.sigmoidRiskScore.toFixed(3);
 		}
 
 		function getThemeColors() {
@@ -1027,76 +1015,6 @@
 			refreshUI(true);
 		}
 
-		function applyRiskInputs(syncBoxes = true) {
-			const ns = parseFloat(document.getElementById('in_nightScrolling').value);
-			const ps = parseFloat(document.getElementById('in_psychState').value);
-			const ts = parseFloat(document.getElementById('in_timeScrolling').value);
-			const dg = parseFloat(document.getElementById('in_dailyGoal').value);
-			const tbl = parseFloat(document.getElementById('in_timeBetweenLogins').value);
-			const dop = parseFloat(document.getElementById('in_Dopamine').value.replace('%', '').trim());
-
-			if ([ns, ps, ts, dg, tbl, dop].some(isNaN) || dg <= 0) {
-				if (syncBoxes) {
-					document.getElementById('riskErr').textContent = 'Enter valid numbers (Daily Limit > 0).';
-				}
-				return;
-			}
-			document.getElementById('riskErr').textContent = '';
-			state.nightScrolling = ns;
-			state.psychState = Math.min(1, Math.max(0, ps));
-			state.timeScrolling = ts;
-			state.dailyGoal = dg;
-			state.timeBetweenLogins = tbl;
-			state.Dopamine = dop;
-			recalculateRisk();
-
-			if (Math.max(state.timeScrolling, state.nightScrolling) > state.dailyGoal) {
-				state.cleanScore = 0;
-			}
-			document.getElementById('goal_timeBetweenLogins').value = state.timeBetweenLogins;
-			document.getElementById('goal_relapseProbability').value = state.sigmoidRiskScore.toFixed(3);
-			if (syncBoxes) {
-				syncInputsFromState();
-			}
-			refreshUI(true);
-			saveToDataStorage();
-		}
-
-		function applyGoalInputs(syncBoxes = true) {
-			const d = Math.max(1, Math.round(parseFloat(document.getElementById('goal_day').value)));
-			const ts = parseFloat(document.getElementById('goal_Tstart').value);
-			const tg = parseFloat(document.getElementById('goal_Tgoal').value);
-			const tbl = parseFloat(document.getElementById('goal_timeBetweenLogins').value);
-			const rp = parseFloat(document.getElementById('goal_relapseProbability').value);
-
-			if ([d, ts, tg, tbl, rp].some(isNaN) || tg <= 0 || ts <= 0 || ts > MAX_DAILY_MINS || tg > MAX_DAILY_MINS) {
-				if (syncBoxes) {
-					document.getElementById('goalErr').textContent = `Enter valid numbers (1 to ${MAX_DAILY_MINS} min).`;
-				}
-				return;
-			}
-			if (tg > ts) {
-				if (syncBoxes) {
-					document.getElementById('goalErr').textContent = 'Target Goal cannot be higher than Starting Time.';
-				}
-				return;
-			}
-			document.getElementById('goalErr').textContent = '';
-			state.current_day = d;
-			state.Tstart = Math.min(MAX_DAILY_MINS, ts);
-			state.Tgoal = Math.min(state.Tstart, tg);
-			state.timeBetweenLogins = tbl;
-			state.sigmoidRiskScore = rp;
-			state.dailyGoal = calcDailyGoal(d, state.Tstart, state.Tgoal, tbl, rp);
-			if (syncBoxes) {
-				syncInputsFromState();
-			} else {
-				document.getElementById('in_dailyGoal').value = state.dailyGoal.toFixed(1);
-			}
-			refreshUI(true);
-			saveToDataStorage();
-		}
-
 		function simulateInstagram(mins, isNight) {
 			state.timeScrolling += mins;
 			const nightNow = isNight || ((state.sim_minutes % 1440) >= 20 * 60);
@@ -1105,7 +1023,7 @@
 				state.cleanScore = 0;
 			}
 			recalculateRisk();
-			syncInputsFromState();
+			syncVariableDisplays();
 			refreshUI(true);
 			saveToDataStorage();
 		}
@@ -1157,7 +1075,7 @@
 			updateDailyGoalFromState();
 			document.getElementById('startModal').classList.remove('open');
 			state.popupOpen = false;
-			syncInputsFromState();
+			syncVariableDisplays();
 			refreshUI(true);
 			saveToDataStorage();
 		}
@@ -1176,7 +1094,7 @@
 			state.sim_minutes = 8 * 60;
 			state.dailyGoal = calcDailyGoal(state.current_day, state.Tstart, state.Tgoal, state.timeBetweenLogins, prevRelapse);
 			recalculateRisk();
-			syncInputsFromState();
+			syncVariableDisplays();
 			refreshUI(true);
 
 			state.popupOpen = true;
@@ -1203,7 +1121,7 @@
 			updateDailyGoalFromState();
 			document.getElementById('newDayModal').classList.remove('open');
 			state.popupOpen = false;
-			syncInputsFromState();
+			syncVariableDisplays();
 			refreshUI(true);
 			saveToDataStorage();
 		}
@@ -1229,20 +1147,9 @@
 				surveyGoalEl.max = maxGoal;
 			});
 
-			['in_nightScrolling', 'in_psychState', 'in_timeScrolling', 'in_dailyGoal', 'in_timeBetweenLogins', 'in_Dopamine'].forEach((id) => {
-				const el = document.getElementById(id);
-				el.addEventListener('input', () => applyRiskInputs(false));
-				el.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyRiskInputs(true); });
-			});
-			['goal_day', 'goal_Tstart', 'goal_Tgoal', 'goal_timeBetweenLogins', 'goal_relapseProbability'].forEach((id) => {
-				const el = document.getElementById(id);
-				el.addEventListener('input', () => applyGoalInputs(false));
-				el.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyGoalInputs(true); });
-			});
-
 			await loadDataStorage();
 			updateDailyGoalFromState();
-			syncInputsFromState();
+			syncVariableDisplays();
 			refreshUI(true);
 			saveToDataStorage();
 			openStartingSurvey();
