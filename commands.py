@@ -104,11 +104,39 @@ def calc_dopamine_from_survey(selections, prev_night_scrolling=0.0):
 	return float(total)
 
 
-def calc_daily_goal(day, Tstart, Tgoal, timeBetweenLogins=0.0, relapseProbability=0.5):
-	"""Calculate the daily goal using NumPy exponential decay + personal state buffer."""
+def calc_dynamic_damping(cleanScore=0, relapseProbability=0.5):
+	"""Calculate dynamic damping coefficient for the daily goal exponential taper.
+
+	Base rate: 0.1.
+	- Long clean streak (5+ days): increases damping (up to ~0.15) to taper faster
+	  due to positive behavioral inertia.
+	- High relapse risk (>60%): softens the drop (down to ~0.06) to prevent
+	  overwhelming the user with an unrealistically aggressive target.
+	"""
+	k = 0.1
+	score = float(cleanScore) if cleanScore is not None else 0.0
+	relapse = float(np.mean(relapseProbability)) if np.iterable(relapseProbability) else float(relapseProbability)
+
+	# If user maintains a long clean streak (5+ days), taper limit faster
+	if score >= 5.0:
+		# Gradually increase: 5 days = +0.01 (0.11), up to +0.05 (0.15) at 9+ days
+		streak_boost = min(0.05, (score - 4.0) * 0.01)
+		k += streak_boost
+
+	# If relapse probability exceeds 60%, soften the drop
+	if relapse > 0.60:
+		# Gradually soften by up to 0.04 (e.g. dropping to ~0.06 at 100% risk)
+		soften_amount = min(0.04, ((relapse - 0.60) / 0.40) * 0.04)
+		k -= soften_amount
+
+	return float(np.clip(k, 0.05, 0.18))
+
+
+def calc_daily_goal(day, Tstart, Tgoal, timeBetweenLogins=0.0, relapseProbability=0.5, cleanScore=0):
+	"""Calculate the daily goal using NumPy exponential decay with dynamic damping + personal state buffer."""
 	reasonableTimeBetweenLogins = 60.0
-	dampingCoefficient = 0.1
-	daily_goal = lambda d: Tgoal + (Tstart - Tgoal) * np.exp(-0.1 * d)
+	dampingCoefficient = calc_dynamic_damping(cleanScore, relapseProbability)
+	daily_goal = lambda d: Tgoal + (Tstart - Tgoal) * np.exp(-dampingCoefficient * d)
 
 	behavioral_index = np.maximum(0.0, 1.0 - (timeBetweenLogins / reasonableTimeBetweenLogins))
 	personal_state = dampingCoefficient * (relapseProbability + behavioral_index) * (Tstart - Tgoal)
@@ -148,11 +176,19 @@ def get_daily_goal_curve(
 	relapseProbability=0.5,
 	min_days=30,
 	num_points=200,
+	cleanScore=0,
 ):
-	"""Generate (days, goals) NumPy arrays showing how the daily goal decreases over time."""
+	"""Generate (days, goals) NumPy arrays showing how the daily goal decreases over time with dynamic damping."""
 	max_day = int(max(min_days, int(current_day) + 5))
 	days = np.linspace(0, max_day, num_points)
-	goals = calc_daily_goal(days, float(Tstart), float(Tgoal), float(timeBetweenLogins), float(relapseProbability))
+	goals = calc_daily_goal(
+		days,
+		float(Tstart),
+		float(Tgoal),
+		float(timeBetweenLogins),
+		float(relapseProbability),
+		cleanScore=cleanScore,
+	)
 	return days, goals, max_day
 
 
@@ -188,13 +224,16 @@ def compute_all_metrics(payload=None):
 	stress = float(np.clip(float(data.get('stress', 0.0)), 0.0, 5.0))
 	psych_state = calc_psych_state(craving, withdrawal, fomo, stress)
 
-	# First risk pass, then dailyGoal, then final risk pass
+	# Determine clean streak before goal computation
+	clean_score = int(data.get('cleanScore', 1))
+
+	# First risk pass, then dailyGoal with dynamic damping, then final risk pass
 	prev_daily_goal = float(data.get('dailyGoal', t_goal))
 	_, prelim_sig = calc_risk(night_scrolling, psych_state, time_scrolling, prev_daily_goal, time_between_logins, dopamine)
-	daily_goal = float(calc_daily_goal(current_day, t_start, t_goal, time_between_logins, prelim_sig))
+	daily_goal = float(calc_daily_goal(current_day, t_start, t_goal, time_between_logins, prelim_sig, cleanScore=clean_score))
 	risk_score, sig_risk = calc_risk(night_scrolling, psych_state, time_scrolling, daily_goal, time_between_logins, dopamine)
+	damping_coefficient = calc_dynamic_damping(clean_score, sig_risk)
 
-	clean_score = int(data.get('cleanScore', 1))
 	if max(time_scrolling, night_scrolling) > daily_goal:
 		clean_score = 0
 
@@ -214,6 +253,7 @@ def compute_all_metrics(payload=None):
 		'stress': stress,
 		'psychState': round(psych_state, 4),
 		'dailyGoal': round(daily_goal, 4),
+		'dampingCoefficient': round(damping_coefficient, 4),
 		'riskScore': round(risk_score, 4),
 		'sigmoidRiskScore': round(sig_risk, 4),
 		'cleanScore': clean_score,
@@ -222,7 +262,7 @@ def compute_all_metrics(payload=None):
 
 	sig_x, sig_y, x_lim = get_sigmoid_curve(risk_score)
 	goal_days, goal_vals, max_day = get_daily_goal_curve(
-		t_start, t_goal, current_day, time_between_logins, sig_risk
+		t_start, t_goal, current_day, time_between_logins, sig_risk, cleanScore=clean_score
 	)
 
 	return {
@@ -465,6 +505,7 @@ class ReBoundState:
 			'sigmoidRiskScore': round(float(self.sigmoidRiskScore), 4),
 			'prevNightScrolling': self.prevNightScrolling,
 			'avoidedScreensBeforeBed': self.avoidedScreensBeforeBed,
+			'dampingCoefficient': round(float(getattr(self, 'dampingCoefficient', 0.1)), 4),
 		}
 
 	def sync_to_storage(self):
@@ -484,8 +525,9 @@ class ReBoundState:
 		return self.riskScore, self.sigmoidRiskScore
 
 	def update_daily_goal(self):
-		"""Recalculate dailyGoal using calc_daily_goal with all 5 parameters."""
+		"""Recalculate dailyGoal using calc_daily_goal with dynamic damping."""
 		self.recalculate()
+		self.dampingCoefficient = calc_dynamic_damping(self.cleanScore, self.sigmoidRiskScore)
 		self.dailyGoal = float(
 			calc_daily_goal(
 				self.current_day,
@@ -493,6 +535,7 @@ class ReBoundState:
 				self.Tgoal,
 				self.timeBetweenLogins,
 				self.sigmoidRiskScore,
+				cleanScore=self.cleanScore,
 			)
 		)
 		self.recalculate()
@@ -535,6 +578,7 @@ class ReBoundState:
 		self.nightScrolling = 0.0
 		self.current_day += 1
 		self.sim_minutes = 8 * 60
+		self.dampingCoefficient = calc_dynamic_damping(self.cleanScore, prev_relapse_prob)
 		self.dailyGoal = float(
 			calc_daily_goal(
 				self.current_day,
@@ -542,6 +586,7 @@ class ReBoundState:
 				self.Tgoal,
 				self.timeBetweenLogins,
 				prev_relapse_prob,
+				cleanScore=self.cleanScore,
 			)
 		)
 		self.recalculate()
