@@ -20,31 +20,32 @@ def read_storage():
 	return {
 		'Instagram': 28,
 		'Tiktok': 5,
-		'initial_goal': 30,
-		'current_scrolling_min': 60,
-		'craving': 0,
-		'withdrawal': 0,
-		'fomo': 0,
-		'stress': 0,
+		'Tstart': 60.0,
+		'Tgoal': 30.0,
+		'initial_goal': 30.0,
+		'current_scrolling_min': 60.0,
+		'nightScrolling': 0.0,
+		'craving': 0.0,
+		'withdrawal': 0.0,
+		'fomo': 0.0,
+		'stress': 0.0,
 		'psychState': 0.0,
+		'timeScrolling': 0.0,
+		'dailyGoal': 30.0,
+		'timeBetweenLogins': 0.0,
+		'Dopamine': 50.0,
+		'cleanScore': 1,
+		'current_day': 1,
+		'sim_minutes': 480,
+		'riskScore': 0.0,
+		'sigmoidRiskScore': 0.5,
 	}
 
 
 def write_storage(payload):
 	data = read_storage()
-	for key in (
-		'Instagram',
-		'Tiktok',
-		'initial_goal',
-		'current_scrolling_min',
-		'craving',
-		'withdrawal',
-		'fomo',
-		'stress',
-		'psychState',
-	):
-		if key in payload:
-			data[key] = payload[key]
+	if isinstance(payload, dict):
+		data.update(payload)
 	with open(STORAGE_FILE, 'w', encoding='utf-8') as f:
 		json.dump(data, f, indent=4)
 	return data

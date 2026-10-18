@@ -670,17 +670,32 @@
 					const data = await res.json();
 					if (typeof data.Instagram === 'number') state.Instagram = data.Instagram;
 					if (typeof data.Tiktok === 'number') state.Tiktok = data.Tiktok;
-					if (typeof data.current_scrolling_min === 'number' && data.current_scrolling_min > 0) {
+					if (typeof data.Tstart === 'number' && data.Tstart > 0) {
+						state.Tstart = Math.min(MAX_DAILY_MINS, data.Tstart);
+					} else if (typeof data.current_scrolling_min === 'number' && data.current_scrolling_min > 0) {
 						state.Tstart = Math.min(MAX_DAILY_MINS, data.current_scrolling_min);
 					}
-					if (typeof data.initial_goal === 'number' && data.initial_goal > 0) {
+					if (typeof data.Tgoal === 'number' && data.Tgoal > 0) {
+						state.Tgoal = Math.min(state.Tstart, MAX_DAILY_MINS, data.Tgoal);
+					} else if (typeof data.initial_goal === 'number' && data.initial_goal > 0) {
 						state.Tgoal = Math.min(state.Tstart, MAX_DAILY_MINS, data.initial_goal);
 					}
+					if (typeof data.nightScrolling === 'number') state.nightScrolling = Math.max(0, data.nightScrolling);
 					if (typeof data.craving === 'number') state.craving = Math.min(5, Math.max(0, data.craving));
 					if (typeof data.withdrawal === 'number') state.withdrawal = Math.min(5, Math.max(0, data.withdrawal));
 					if (typeof data.fomo === 'number') state.fomo = Math.min(5, Math.max(0, data.fomo));
 					if (typeof data.stress === 'number') state.stress = Math.min(5, Math.max(0, data.stress));
-					state.psychState = calcPsychStateFromSliders(state.craving, state.withdrawal, state.fomo, state.stress);
+					if (typeof data.psychState === 'number') {
+						state.psychState = Math.min(1, Math.max(0, data.psychState));
+					} else {
+						state.psychState = calcPsychStateFromSliders(state.craving, state.withdrawal, state.fomo, state.stress);
+					}
+					if (typeof data.timeScrolling === 'number') state.timeScrolling = Math.max(0, data.timeScrolling);
+					if (typeof data.timeBetweenLogins === 'number') state.timeBetweenLogins = Math.max(0, data.timeBetweenLogins);
+					if (typeof data.Dopamine === 'number') state.Dopamine = Math.min(100, Math.max(0, data.Dopamine));
+					if (typeof data.cleanScore === 'number') state.cleanScore = Math.max(0, Math.round(data.cleanScore));
+					if (typeof data.current_day === 'number' && data.current_day >= 1) state.current_day = Math.round(data.current_day);
+					if (typeof data.sim_minutes === 'number') state.sim_minutes = data.sim_minutes;
 					updateDailyGoalFromState();
 					syncInputsFromState();
 					refreshUI(true);
@@ -694,13 +709,25 @@
 			const payload = {
 				Instagram: state.Instagram,
 				Tiktok: state.Tiktok,
+				Tstart: state.Tstart,
+				Tgoal: state.Tgoal,
 				initial_goal: state.Tgoal,
 				current_scrolling_min: state.Tstart,
+				nightScrolling: state.nightScrolling,
 				craving: state.craving,
 				withdrawal: state.withdrawal,
 				fomo: state.fomo,
 				stress: state.stress,
-				psychState: Number(state.psychState.toFixed(3))
+				psychState: Number(state.psychState.toFixed(4)),
+				timeScrolling: state.timeScrolling,
+				dailyGoal: Number(state.dailyGoal.toFixed(4)),
+				timeBetweenLogins: state.timeBetweenLogins,
+				Dopamine: state.Dopamine,
+				cleanScore: state.cleanScore,
+				current_day: state.current_day,
+				sim_minutes: state.sim_minutes,
+				riskScore: Number(state.riskScore.toFixed(4)),
+				sigmoidRiskScore: Number(state.sigmoidRiskScore.toFixed(4))
 			};
 			try {
 				localStorage.setItem('reBound_data_storage', JSON.stringify(payload, null, 4));
@@ -714,7 +741,7 @@
 				if (res.ok) {
 					const statusEl = document.getElementById('storageStatus');
 					if (statusEl) {
-						statusEl.textContent = `Saved to data_storage.json (Goal: ${state.Tgoal}, Current: ${state.Tstart}, Psych: ${state.psychState.toFixed(2)})`;
+						statusEl.textContent = `Saved all variables to data_storage.json (Day ${state.current_day}, Goal: ${state.dailyGoal.toFixed(1)}m, Risk: ${(state.sigmoidRiskScore * 100).toFixed(1)}%)`;
 					}
 				}
 			} catch (_) {}
