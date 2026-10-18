@@ -22,18 +22,17 @@
 			/* Palette matched directly to colors_example.png */
 			--bg-ocean: #3a7bbf;
 			--bg-ocean-panel: #4585c7;
-			--bg-slate-teal: #3e6b75;
-			--bg-sage: #5b9279;
+			--bg-slate-teal: #62878f;
+			--bg-sage: #9bbaac;
 			--bg-cream: #f7f4ec;
 			--bg-mint: #d6e7cd;
 			--periwinkle: #6e98e8;
 			--sky-aqua: #98cede;
-			--butter-yellow: #ffd66b;
+			--butter-yellow: #ffe49f;
 			--border-light: #89b2e8;
 			--text-cream: #f7f4ec;
-			--text-dark-teal: #2f555e;
-			--text-sage: #467861;
-			--coral-alert: #f26d6d;
+			--text-dark-teal: #6c949d;
+			--text-sage: #79aa93;
 		}
 		* {
 			box-sizing: border-box;
@@ -42,7 +41,7 @@
 			font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
 		}
 		body {
-			background: var(--bg-ocean);
+			background: var(--page-bg);
 			color: var(--text-cream);
 			min-height: 100vh;
 			padding: 22px 30px;
@@ -285,6 +284,9 @@
 			gap: 12px;
 			box-shadow: 0 8px 20px rgba(31, 68, 110, 0.18);
 		}
+		#goalValuesCard {
+			margin-bottom: 20px;
+		}
 		.chart-header {
 			display: flex;
 			justify-content: space-between;
@@ -304,6 +306,27 @@
 			color: var(--butter-yellow);
 			padding: 5px 13px;
 			border-radius: 999px;
+		}
+		.goal-values-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+			gap: 18px;
+		}
+		.goal-value {
+			background: var(--bg-mint);
+			border-radius: 20px;
+			padding: 28px;
+			text-align: center;
+		}
+		.goal-value-label {
+			display: block;
+			font-size: 1rem;
+			font-weight: 700;
+			margin-bottom: 10px;
+		}
+		.goal-value-number {
+			font-size: 2rem;
+			font-weight: 800;
 		}
 		canvas.plot-canvas {
 			width: 100%;
@@ -441,7 +464,6 @@
 			<div class="clock-badge" id="clockBadge">Day 1 • 8:00 AM (1 hr/s)</div>
 			<button class="pill-btn btn-yellow" id="pauseBtn" onclick="togglePause()">⏸ Stop Time</button>
 			<button class="pill-btn btn-sage" onclick="triggerNextDay()">☀️ Next Day (Survey)</button>
-			<button class="pill-btn btn-periwinkle" onclick="openStartingSurvey()">📋 Beginning Survey</button>
 		</div>
 	</header>
 
@@ -452,7 +474,7 @@
 				<span class="widget-tag">REBOUND WIDGET</span>
 				<span class="widget-risk" id="widgetRisk">Risk: 50.0%</span>
 			</div>
-			<div class="streak-title" id="widgetStreak">Clean Streak: 1 🔥</div>
+			<div class="streak-title" id="widgetStreak">Clean Streak: 1 </div>
 			<div class="streak-sub" id="widgetStatus">Day 1 • 8:00 AM — Keep avoiding doomscrolling!</div>
 			<div class="scroll-row">
 				<span id="widgetScrolled">Scrolled: 0 min</span>
@@ -467,7 +489,7 @@
 			<div>
 				<div class="widget-tag" style="color: var(--butter-yellow); margin-bottom: 6px;">📸 INSTAGRAM REELS SIMULATOR</div>
 				<p style="font-size: 0.92rem; color: var(--text-cream); line-height: 1.4;">
-					Simulating Instagram scrolling adds scroll time and immediately resets your <strong>Clean Streak</strong> to <strong>0</strong>.
+					Simulating Instagram scrolling adds scroll time.
 				</p>
 			</div>
 			<div style="display: flex; gap: 10px; flex-wrap: wrap;">
@@ -477,17 +499,26 @@
 		</div>
 	</section>
 
-	<!-- Graph View Mode Bar (Both Graphs at Once OR Individual Tabs) -->
+	<!-- Daily Goal Values and Calculation Graphs View Bar -->
 	<div class="view-bar">
 		<div class="tab-group">
-			<button class="tab-btn active" id="tabBoth" onclick="setGraphView('both')">📊 Both Graphs at Once</button>
-			<button class="tab-btn" id="tabRisk" onclick="setGraphView('risk')">📈 Risk Sigmoid Tab</button>
-			<button class="tab-btn" id="tabGoal" onclick="setGraphView('goal')">🎯 Daily Goal Tab</button>
+			<button class="tab-btn active" id="tabValues" onclick="setGraphView('values')">🎯 Daily Goal &amp; Relapse Probability</button>
+			<button class="tab-btn" id="tabGraphs" onclick="setGraphView('graphs')">📊 Calculation Graphs</button>
 		</div>
 	</div>
 
-	<!-- Charts Section -->
-	<section class="charts-grid" id="chartsGrid">
+	<section class="chart-card" id="goalValuesCard">
+		<div class="chart-header">
+			<h2>Current Results</h2>
+		</div>
+		<div class="goal-values-grid">
+			<div class="goal-value"><span class="goal-value-label">Daily goal</span><span class="goal-value-number" id="goalValueDaily">70.5 min</span></div>
+			<div class="goal-value"><span class="goal-value-label">Relapse probability</span><span class="goal-value-number" id="goalValueRelapse">6.0%</span></div>
+		</div>
+	</section>
+
+	<!-- Calculation Graphs -->
+	<section class="charts-grid" id="calculationGraphs" style="display: none;">
 		<div class="chart-card" id="riskChartCard">
 			<div class="chart-header">
 				<h2>reBound — Doomscrolling Risk (Sigmoid)</h2>
@@ -499,7 +530,7 @@
 		<div class="chart-card" id="goalChartCard">
 			<div class="chart-header">
 				<h2>reBound — Daily Goal Progression</h2>
-				<span class="chart-stat" style="background: var(--bg-sage); color: var(--text-cream)" id="goalChartStat">Day 1 Goal: 57.1 min (Target: 30m)</span>
+				<span class="chart-stat" id="goalChartStat">Day 1 Goal: 70.5 min (Target: 30 min)</span>
 			</div>
 			<canvas class="plot-canvas" id="goalCanvas"></canvas>
 		</div>
@@ -736,59 +767,54 @@
 			const maxDay = Math.max(30, state.current_day + 5);
 			const N = 200;
 			const pts = [];
-			let maxG = Math.max(state.Tstart, state.Tgoal, state.dailyGoal);
+			let maxGoal = Math.max(state.Tstart, state.Tgoal, state.dailyGoal);
 			for (let i = 0; i <= N; i++) {
-				const d = (maxDay * i) / N;
-				const g = calcDailyGoal(d, state.Tstart, state.Tgoal, state.timeBetweenLogins, state.sigmoidRiskScore);
-				if (g > maxG) maxG = g;
-				pts.push({ d, g });
+				const day = (maxDay * i) / N;
+				const goal = calcDailyGoal(day, state.Tstart, state.Tgoal, state.timeBetweenLogins, state.sigmoidRiskScore);
+				maxGoal = Math.max(maxGoal, goal);
+				pts.push({ day, goal });
 			}
 			const yMin = Math.max(0, Math.min(state.Tgoal, state.Tstart) * 0.8);
-			const yMax = maxG * 1.1 + 5.0;
+			const yMax = maxGoal * 1.1 + 5.0;
+			const xToPx = (day) => pad.l + (day / maxDay) * pw;
+			const yToPx = (goal) => pad.t + (1 - (goal - yMin) / Math.max(1, yMax - yMin)) * ph;
 
-			const xToPx = (d) => pad.l + (d / maxDay) * pw;
-			const yToPx = (g) => pad.t + (1 - (g - yMin) / Math.max(1, yMax - yMin)) * ph;
-
-			// Grid
 			ctx.strokeStyle = 'rgba(214, 231, 205, 0.25)';
 			ctx.lineWidth = 1;
 			ctx.setLineDash([4, 4]);
 			for (let i = 0; i <= 4; i++) {
-				const gv = yMin + ((yMax - yMin) * i) / 4;
-				const py = yToPx(gv);
+				const goal = yMin + ((yMax - yMin) * i) / 4;
+				const py = yToPx(goal);
 				ctx.beginPath(); ctx.moveTo(pad.l, py); ctx.lineTo(W - pad.r, py); ctx.stroke();
 				ctx.fillStyle = '#f7f4ec'; ctx.font = '11px Segoe UI'; ctx.textAlign = 'right';
-				ctx.fillText(Math.round(gv) + 'm', pad.l - 8, py + 4);
+				ctx.fillText(Math.round(goal) + 'm', pad.l - 8, py + 4);
 			}
-			for (let d = 0; d <= maxDay; d += 5) {
-				const px = xToPx(d);
+			for (let day = 0; day <= maxDay; day += 5) {
+				const px = xToPx(day);
 				ctx.beginPath(); ctx.moveTo(px, pad.t); ctx.lineTo(px, H - pad.b); ctx.stroke();
 				ctx.fillStyle = '#f7f4ec'; ctx.font = '11px Segoe UI'; ctx.textAlign = 'center';
-				ctx.fillText(d, px, H - pad.b + 16);
+				ctx.fillText(day, px, H - pad.b + 16);
 			}
 
-			// Target line (Tgoal in sky aqua)
-			const ty = yToPx(state.Tgoal);
 			ctx.strokeStyle = '#98cede';
 			ctx.lineWidth = 1.8;
-			ctx.beginPath(); ctx.moveTo(pad.l, ty); ctx.lineTo(W - pad.r, ty); ctx.stroke();
+			const targetY = yToPx(state.Tgoal);
+			ctx.beginPath(); ctx.moveTo(pad.l, targetY); ctx.lineTo(W - pad.r, targetY); ctx.stroke();
 			ctx.setLineDash([]);
 
-			// Daily Goal Curve (soft mint #d6e7cd)
 			ctx.strokeStyle = '#d6e7cd';
 			ctx.lineWidth = 3.0;
 			ctx.beginPath();
-			pts.forEach((p, idx) => {
-				const px = xToPx(p.d), py = yToPx(p.g);
-				if (idx === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+			pts.forEach((point, index) => {
+				const px = xToPx(point.day), py = yToPx(point.goal);
+				if (index === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
 			});
 			ctx.stroke();
 
-			// Current Day Point (butter yellow #ffd66b)
-			const cx = xToPx(state.current_day), cy = yToPx(state.dailyGoal);
+			const currentX = xToPx(state.current_day), currentY = yToPx(state.dailyGoal);
 			ctx.fillStyle = '#ffd66b';
 			ctx.beginPath();
-			ctx.arc(cx, cy, 7, 0, Math.PI * 2);
+			ctx.arc(currentX, currentY, 7, 0, Math.PI * 2);
 			ctx.fill();
 			ctx.strokeStyle = '#f7f4ec';
 			ctx.lineWidth = 2;
@@ -810,7 +836,7 @@
 			const streakEl = document.getElementById('widgetStreak');
 			const statusEl = document.getElementById('widgetStatus');
 			if (state.cleanScore > 0) {
-				streakEl.textContent = `Clean Streak: ${state.cleanScore} 🔥`;
+				streakEl.textContent = `Clean Streak: ${state.cleanScore}`;
 				streakEl.style.color = '#3e6b75';
 				statusEl.textContent = `Day ${state.current_day} • ${timeStr} — Keep avoiding doomscrolling!`;
 			} else {
@@ -830,7 +856,9 @@
 			document.getElementById('riskChartStat').textContent =
 				`Risk: ${(state.sigmoidRiskScore * 100).toFixed(1)}% (z = ${state.riskScore.toFixed(2)})`;
 			document.getElementById('goalChartStat').textContent =
-				`Day ${state.current_day} Goal: ${state.dailyGoal.toFixed(1)} min (Target: ${state.Tgoal.toFixed(0)}m)`;
+				`Day ${state.current_day} Goal: ${state.dailyGoal.toFixed(1)} min (Target: ${state.Tgoal.toFixed(0)} min)`;
+			document.getElementById('goalValueDaily').textContent = `${state.dailyGoal.toFixed(1)} min`;
+			document.getElementById('goalValueRelapse').textContent = `${(state.sigmoidRiskScore * 100).toFixed(1)}%`;
 
 			if (redrawCharts) {
 				drawRiskChart();
@@ -840,27 +868,11 @@
 
 		function setGraphView(mode) {
 			state.viewMode = mode;
-			const grid = document.getElementById('chartsGrid');
-			const riskCard = document.getElementById('riskChartCard');
-			const goalCard = document.getElementById('goalChartCard');
-
-			document.getElementById('tabBoth').className = 'tab-btn' + (mode === 'both' ? ' active' : '');
-			document.getElementById('tabRisk').className = 'tab-btn' + (mode === 'risk' ? ' active' : '');
-			document.getElementById('tabGoal').className = 'tab-btn' + (mode === 'goal' ? ' active-sage' : '');
-
-			if (mode === 'both') {
-				grid.classList.remove('single-col');
-				riskCard.style.display = 'flex';
-				goalCard.style.display = 'flex';
-			} else if (mode === 'risk') {
-				grid.classList.add('single-col');
-				riskCard.style.display = 'flex';
-				goalCard.style.display = 'none';
-			} else {
-				grid.classList.add('single-col');
-				riskCard.style.display = 'none';
-				goalCard.style.display = 'flex';
-			}
+			const showGraphs = mode === 'graphs';
+			document.getElementById('goalValuesCard').style.display = showGraphs ? 'none' : 'flex';
+			document.getElementById('calculationGraphs').style.display = showGraphs ? 'grid' : 'none';
+			document.getElementById('tabValues').className = 'tab-btn' + (!showGraphs ? ' active' : '');
+			document.getElementById('tabGraphs').className = 'tab-btn' + (showGraphs ? ' active' : '');
 			refreshUI(true);
 		}
 
