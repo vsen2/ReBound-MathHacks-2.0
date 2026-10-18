@@ -49,6 +49,8 @@ This model treats excessive social media use as a dynamic emotional regulation i
 2. Open Google Chrome and navigate to `chrome://extensions/`.
 3. Toggle **Developer mode** on in the top-right corner.
 4. Click **Load unpacked** and select your `Rebound-extension` folder.
+5. Download Libraries in terminal: pip install pygetwindow websockets matplotlib numpy
+6. Run the "start.py" file
 
 ---
 
