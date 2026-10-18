@@ -34,7 +34,7 @@ async def send_periodically(interval=1):
         usage_log = load_log()
         payload_data = {
             "total": usage_log.get("total", 0),
-            "daily_limit": usage_log.get("daily_limit", 0)
+            "daily_limit": usage_log.get("dailyGoal", 0)
         }
 
         payload = json.dumps(payload_data)

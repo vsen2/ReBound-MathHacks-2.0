@@ -730,17 +730,6 @@
 		</div>
 	</header>
 
-	<!-- Gemini AI Habit & Relapse Prevention Coach (Powered by .env + commands.py) -->
-	<section class="section-card" style="max-width: 1180px; margin: 0 auto 18px auto; display: flex; flex-direction: column; gap: 10px;">
-		<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-			<div>
-				<div class="widget-tag" style="margin-bottom: 4px;">✨ GEMINI-POWERED HABIT &amp; RELAPSE PREVENTION SUGGESTIONS</div>
-			</div>
-			<button class="pill-btn" id="aiSuggestBtn" onclick="generateAISuggestions()">✨ Generate AI Suggestions</button>
-		</div>
-		<div id="aiSuggestOutput" style="background: rgba(255, 255, 255, 0.48); border-radius: 14px; padding: 12px 16px; font-size: 0.92rem; line-height: 1.55; white-space: pre-wrap; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78); border: 1px solid rgba(255, 255, 255, 0.45);">Click "✨ Generate AI Suggestions" for personalized habit and relapse-prevention advice based on your live reBound metrics.</div>
-	</section>
-
 	<!-- Widget + Instagram Doomscroll Simulator Row -->
 	<section class="status-grid">
 		<div class="section-card">
@@ -811,6 +800,12 @@
 		</div>
 	</section>
 
+	<!-- Gemini AI Habit & Relapse Prevention Coach (Powered by .env + commands.py) -->
+	<section class="section-card" style="max-width: 1180px; margin: 0 auto 18px auto; display: flex; flex-direction: column; gap: 10px;">
+		<div class="widget-tag">✨ GEMINI-POWERED HABIT &amp; RELAPSE PREVENTION SUGGESTIONS</div>
+		<div id="aiSuggestOutput" style="background: rgba(255, 255, 255, 0.48); border-radius: 14px; padding: 12px 16px; font-size: 0.92rem; line-height: 1.55; white-space: pre-wrap; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78); border: 1px solid rgba(255, 255, 255, 0.45);">✨ Generating personalized habit &amp; relapse prevention suggestions...</div>
+	</section>
+
 	<!-- Current Variables -->
 	<section class="inputs-grid">
 		<div class="section-card">
@@ -859,7 +854,7 @@
 			<label class="check-item"><input type="checkbox" class="dop-check" data-pts="25" /> <span>I spent time outside in natural sunlight or exercised yesterday.</span></label>
 			<label class="check-item"><input type="checkbox" class="dop-check" data-pts="25" /> <span>I engaged in an offline, deep-focus hobby (e.g., reading a physical book, playing an instrument, sketching).</span></label>
 
-			<div class="modal-section-title">Psychological State Sliders (0 – 5)</div>
+			<div class="modal-section-title">Psychological State</div>
 			<div class="slider-item">
 				<div class="slider-top"><span>Craving</span><span id="val_craving">0</span></div>
 				<input type="range" id="slider_craving" min="0" max="5" step="0.5" value="0" oninput="updatePsychSliders()" />
@@ -976,6 +971,7 @@
 			if (typeof data.sim_minutes === 'number') state.sim_minutes = data.sim_minutes;
 			if (typeof data.riskScore === 'number') state.riskScore = data.riskScore;
 			if (typeof data.sigmoidRiskScore === 'number') state.sigmoidRiskScore = data.sigmoidRiskScore;
+			if (typeof data.dampingCoefficient === 'number') state.dampingCoefficient = data.dampingCoefficient;
 			if (typeof data.prevNightScrolling === 'number') {
 				state.prevNightScrolling = Math.max(0, data.prevNightScrolling);
 				state.avoidedScreensBeforeBed = state.prevNightScrolling <= 0;
@@ -1012,7 +1008,7 @@
 					refreshUI(true);
 					const statusEl = document.getElementById('storageStatus');
 					if (statusEl) {
-						statusEl.textContent = `Computed via commands.py (NumPy) • Day ${state.current_day}, Goal: ${state.dailyGoal.toFixed(1)}m, Risk: ${(state.sigmoidRiskScore * 100).toFixed(1)}%`;
+						statusEl.textContent = `Day ${state.current_day}, Goal: ${state.dailyGoal.toFixed(1)}m, Risk: ${(state.sigmoidRiskScore * 100).toFixed(1)}%`;
 					}
 				}
 			} catch (_) {}
@@ -1183,10 +1179,18 @@
 				}
 			} else {
 				const behIdx = Math.max(0.0, 1.0 - state.timeBetweenLogins / 60.0);
-				const pState = 0.1 * (state.sigmoidRiskScore + behIdx) * (state.Tstart - state.Tgoal);
+				let dynamicDamping = 0.1;
+				if (state.cleanScore >= 5) {
+					dynamicDamping += Math.min(0.05, (state.cleanScore - 4) * 0.01);
+				}
+				if (state.sigmoidRiskScore > 0.60) {
+					dynamicDamping -= Math.min(0.04, ((state.sigmoidRiskScore - 0.60) / 0.40) * 0.04);
+				}
+				dynamicDamping = Math.min(0.18, Math.max(0.05, dynamicDamping));
+				const pState = dynamicDamping * (state.sigmoidRiskScore + behIdx) * (state.Tstart - state.Tgoal);
 				for (let i = 0; i <= 200; i++) {
 					const day = (maxDay * i) / 200;
-					const goal = Math.min(state.Tstart, state.Tgoal + (state.Tstart - state.Tgoal) * Math.exp(-0.1 * (day + 1)) + pState);
+					const goal = Math.min(state.Tstart, state.Tgoal + (state.Tstart - state.Tgoal) * Math.exp(-dynamicDamping * (day + 1)) + pState);
 					maxGoal = Math.max(maxGoal, goal);
 					pts.push({ day, goal });
 				}
@@ -1413,10 +1417,8 @@
 
 		async function generateAISuggestions() {
 			const outEl = document.getElementById('aiSuggestOutput');
-			const btnEl = document.getElementById('aiSuggestBtn');
 			if (!outEl) return;
 			outEl.textContent = '✨ Analyzing your reBound metrics with Gemini AI...';
-			if (btnEl) btnEl.disabled = true;
 
 			try {
 				const res = await fetch(AI_SUGGEST_API_URL, {
@@ -1431,7 +1433,6 @@
 					}
 				}
 			} catch (_) {}
-			if (btnEl) btnEl.disabled = false;
 		}
 
 		// 1 hr/s clock (6 simulated minutes every 100 ms)
@@ -1456,6 +1457,7 @@
 			});
 
 			await loadDataStorage();
+			generateAISuggestions();
 			openStartingSurvey();
 		});
 	</script>
