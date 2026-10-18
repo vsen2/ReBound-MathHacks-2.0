@@ -35,28 +35,34 @@
 		}
 		body {
 			background:
-				radial-gradient(ellipse at 8% 8%, rgba(173, 220, 255, 0.78), transparent 33%),
-				radial-gradient(ellipse at 86% 14%, rgba(190, 239, 209, 0.7), transparent 29%),
-				radial-gradient(ellipse at 52% 100%, rgba(128, 179, 255, 0.12), transparent 32%),
-				linear-gradient(135deg, #f4efe9 0%, var(--page-bg) 44%, #ebf4f4 100%);
-			background-attachment: fixed;
+				radial-gradient(ellipse at 9% 2%, rgba(112, 194, 255, 0.52), transparent 34%),
+				radial-gradient(ellipse at 94% 13%, rgba(124, 221, 183, 0.42), transparent 30%),
+				radial-gradient(ellipse at 68% 63%, rgba(177, 158, 255, 0.2), transparent 36%),
+				radial-gradient(ellipse at 12% 90%, rgba(255, 190, 171, 0.25), transparent 34%),
+				repeating-linear-gradient(125deg, rgba(255,255,255,0.035) 0 1px, transparent 1px 9px),
+				linear-gradient(135deg, #e9edf8 0%, #e4f1f5 43%, #e4f3ed 100%);
+			background-attachment: fixed, fixed, fixed, fixed, fixed, fixed;
 			color: var(--text-color);
 			min-height: 100vh;
 			padding: 22px 30px 40px;
 			position: relative;
+			isolation: isolate;
 		}
 		body::before {
 			content: "";
 			position: fixed;
 			inset: 0;
+			z-index: -1;
 			pointer-events: none;
-			background: linear-gradient(120deg, rgba(255,255,255,0.14), rgba(255,255,255,0));
+			background:
+				radial-gradient(ellipse at 50% -10%, rgba(255,255,255,0.52), transparent 44%),
+				linear-gradient(115deg, rgba(255,255,255,0.12), transparent 42%, rgba(255,255,255,0.08));
 		}
 		.topbar,
 		.section-card,
 		.chart-card,
 		.modal {
-			background: linear-gradient(135deg, rgba(255,255,255,0.34), rgba(255,255,255,0.12));
+			background: linear-gradient(135deg, rgba(255,255,255,0.32), rgba(255,255,255,0.1));
 			border: 1px solid rgba(255, 255, 255, 0.58);
 			border-radius: 28px;
 			box-shadow: var(--glass-shadow);
@@ -64,6 +70,13 @@
 			-webkit-backdrop-filter: blur(24px) saturate(185%);
 			position: relative;
 			overflow: hidden;
+			transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+		}
+		.section-card:hover,
+		.chart-card:hover {
+			transform: translateY(-2px);
+			border-color: rgba(255,255,255,0.82);
+			box-shadow: 0 24px 44px rgba(41,76,99,0.15), 0 8px 18px rgba(84,125,156,0.09), inset 0 1px 0 rgba(255,255,255,0.8);
 		}
 		.topbar::before,
 		.section-card::before,
@@ -72,8 +85,30 @@
 			content: "";
 			position: absolute;
 			inset: 0;
-			background: linear-gradient(135deg, rgba(255,255,255,0.25), rgba(255,255,255,0.04) 34%, rgba(255,255,255,0.12));
+			background:
+				radial-gradient(ellipse at 14% 0%, rgba(255,255,255,0.56), transparent 42%),
+				linear-gradient(125deg, rgba(255,255,255,0.18), rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.12));
 			pointer-events: none;
+			z-index: 0;
+		}
+		.topbar::after,
+		.section-card::after,
+		.chart-card::after,
+		.modal::after {
+			content: "";
+			position: absolute;
+			inset: 1px;
+			border-radius: inherit;
+			box-shadow: inset 0 1px 0 rgba(255,255,255,0.78), inset 1px 0 0 rgba(255,255,255,0.24);
+			pointer-events: none;
+			z-index: 0;
+		}
+		.topbar > *,
+		.section-card > *,
+		.chart-card > *,
+		.modal > * {
+			position: relative;
+			z-index: 1;
 		}
 		.topbar {
 			display: flex;
@@ -158,8 +193,14 @@
 		.tab-btn:active {
 			transform: translateY(0) scale(0.985);
 		}
+		.pill-btn:focus-visible,
+		.tab-btn:focus-visible,
+		input:focus-visible {
+			outline: 3px solid rgba(83, 133, 221, 0.48);
+			outline-offset: 3px;
+		}
 		.btn-secondary {
-			background: linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(233,245,255,0.9) 52%, rgba(223,245,240,0.9) 100%);
+			background: linear-gradient(135deg, rgba(255,255,255,0.78) 0%, rgba(220,239,255,0.52) 52%, rgba(215,245,235,0.58) 100%);
 		}
 
 		/* Top Row: reBound Widget + Instagram Simulator */
@@ -559,6 +600,20 @@
 			border: none;
 			border-radius: 50%;
 			box-shadow: 0 4px 10px rgba(76, 117, 199, 0.3);
+		}
+		@media (max-width: 640px) {
+			body { padding: 14px 14px 28px; }
+			.topbar, .section-card, .chart-card { border-radius: 22px; }
+			.topbar { padding: 16px; }
+			.section-card { padding: 18px; }
+		}
+		@media (prefers-reduced-motion: reduce) {
+			*, *::before, *::after {
+				scroll-behavior: auto !important;
+				transition-duration: 0.01ms !important;
+				animation-duration: 0.01ms !important;
+				animation-iteration-count: 1 !important;
+			}
 		}
 	</style>
 </head>
@@ -988,13 +1043,14 @@
 
 			// Current Risk point
 			const rx = xToPx(state.riskScore), ry = yToPx(state.sigmoidRiskScore);
-			ctx.fillStyle = colors.accentSec;
+			const riskPointGradient = ctx.createLinearGradient(rx - 7, ry, rx + 7, ry);
+			riskPointGradient.addColorStop(0, '#75d6c2');
+			riskPointGradient.addColorStop(0.52, '#72b9ef');
+			riskPointGradient.addColorStop(1, '#7189ed');
+			ctx.fillStyle = riskPointGradient;
 			ctx.beginPath();
 			ctx.arc(rx, ry, 7, 0, Math.PI * 2);
 			ctx.fill();
-			ctx.strokeStyle = colors.text;
-			ctx.lineWidth = 2;
-			ctx.stroke();
 
 			// Axis label
 			ctx.fillStyle = colors.text;
@@ -1073,13 +1129,14 @@
 
 			// Current Day Point
 			const currentX = xToPx(state.current_day), currentY = yToPx(state.dailyGoal);
-			ctx.fillStyle = colors.accentSec;
+			const goalPointGradient = ctx.createLinearGradient(currentX - 7, currentY, currentX + 7, currentY);
+			goalPointGradient.addColorStop(0, '#75d6c2');
+			goalPointGradient.addColorStop(0.52, '#72b9ef');
+			goalPointGradient.addColorStop(1, '#7189ed');
+			ctx.fillStyle = goalPointGradient;
 			ctx.beginPath();
 			ctx.arc(currentX, currentY, 7, 0, Math.PI * 2);
 			ctx.fill();
-			ctx.strokeStyle = colors.text;
-			ctx.lineWidth = 2;
-			ctx.stroke();
 
 			ctx.fillStyle = colors.text;
 			ctx.font = 'bold 11px Segoe UI';
