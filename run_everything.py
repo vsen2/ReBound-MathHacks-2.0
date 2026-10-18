@@ -35,3 +35,5 @@ while True:
             p.wait()       # Ensures process cleans up completely
         print("All background processes stopped.")
         break
+
+#if you ever accidentally close all your vs code without typing stop, put: taskkill /f /im python.exe    inside of command prompt
