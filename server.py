@@ -16,6 +16,7 @@ def load_log(filename=JSON_FILE):
     return log
 
 async def handle_client(websocket):
+    
     CONNECTED_CLIENTS.add(websocket)
     print("\n[+] Chrome extension connected!")
     try:
