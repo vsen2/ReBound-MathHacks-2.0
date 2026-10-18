@@ -18,7 +18,8 @@
     }
   ],
   "action": {
-    "default_icon": "logo.png"
+    "default_icon": "logo.png",
+    "default_popup": "popup.html"
   },
   "icons": {
     "48": "logo.png",
@@ -27,6 +28,7 @@
   "background": {
     "service_worker": "background.js"
   },
+  
   "content_scripts": [
     {
       "matches": [

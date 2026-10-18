@@ -119,3 +119,28 @@ if (document.readyState === "loading") {
 } else {
   initReboundBlocker();
 }
+
+
+
+
+
+// Load stored data when popup opens
+document.addEventListener('DOMContentLoaded', () => {
+  chrome.storage.local.get("usageData", (result) => {
+    if (result.usageData) {
+      displayData(result.usageData);
+    }
+  });
+});
+
+// Listen for live updates sent from background.js
+chrome.runtime.onMessage.addListener((message) => {
+  if (message.type === "UPDATE_UI") {
+    displayData(message.data);
+  }
+});
+
+function displayData(data) {
+  document.getElementById('totalDisplay').textContent = `Total: ${data.total}`;
+  document.getElementById('limitDisplay').textContent = `Limit: ${data.daily_limit}`;
+}
