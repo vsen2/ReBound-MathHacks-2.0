@@ -8,57 +8,50 @@
 	<style>
 		:root {
 			/* Unified colors — change these two variables to recolor all sections/graphs and all text */
-			--page-bg: #9ec8f4;          /* Overall page background */
-			--section-bg: #bee7fbd6;       /* Unified background for all sections, cards, modals, and graphs */
+			--page-bg: #bfd0c2;          /* Overall page background */
+			--section-bg: #bee7fbd6;     /* Unified background for all sections, cards, modals, and graphs */
 			--text-color: #2f555e;       /* Unified text color across all sections and graphs */
 
 			/* Accent & border variables */
 			--accent-color: #5b9279;
-			--accent-secondary: #2a6eed;
+			--accent-secondary: #5282dc;
 			--border-color: #98cede;
-			--subtle-bg: #d6e7cd;
+			--subtle-bg: #def6d0;
 			--danger-color: #d9534f;
-
-			/* Palette matched directly to colors_example.png */
-			--bg-ocean: #3a7bbf;
-			--bg-ocean-panel: #4585c7;
-			--bg-slate-teal: #3e6b75;
-			--bg-sage: #5b9279;
-			--bg-cream: #f7f4ec;
-			--bg-mint: #d6e7cd;
-			--periwinkle: #6e98e8;
-			--sky-aqua: #98cede;
-			--butter-yellow: #ffd66b;
-			--border-light: #89b2e8;
-			--text-cream: #f7f4ec;
-			--text-dark-teal: #2f555e;
-			--text-sage: #467861;
-			--coral-alert: #f26d6d;
+			--button-white: #e6f8ff;
+			--button-light-blue: #dbf4cf;
 		}
 		* {
 			box-sizing: border-box;
 			margin: 0;
 			padding: 0;
 			font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+			color: var(--text-color);
 		}
 		body {
-			background: var(--bg-ocean);
-			color: var(--text-cream);
+			background: var(--page-bg);
+			color: var(--text-color);
 			min-height: 100vh;
 			padding: 22px 30px;
+		}
+		.topbar,
+		.section-card,
+		.chart-card,
+		.modal {
+			background: var(--section-bg);
+			color: var(--text-color);
+			border: 2px solid var(--border-color);
+			border-radius: 24px;
+			box-shadow: 0 8px 20px rgba(31, 68, 110, 0.18);
 		}
 		.topbar {
 			display: flex;
 			align-items: center;
 			justify-content: space-between;
-			background: var(--bg-ocean-panel);
-			border: 2px solid var(--border-light);
-			border-radius: 24px;
 			padding: 14px 24px;
 			margin-bottom: 20px;
 			flex-wrap: wrap;
 			gap: 14px;
-			box-shadow: 0 8px 24px rgba(31, 68, 110, 0.22);
 		}
 		.brand {
 			display: flex;
@@ -69,22 +62,22 @@
 			width: 46px;
 			height: 46px;
 			border-radius: 14px;
-			background: var(--bg-cream);
+			background: var(--section-bg);
 			padding: 3px;
 			object-fit: contain;
 		}
 		.brand h1 {
 			font-size: 1.5rem;
 			font-weight: 800;
-			color: var(--butter-yellow);
+			color: var(--text-color);
 			letter-spacing: -0.01em;
 		}
 		.brand span {
 			font-size: 0.86rem;
-			color: var(--text-cream);
-			opacity: 0.9;
+			color: var(--text-color);
+			opacity: 0.85;
 			display: block;
-			font-weight: 500;
+			font-weight: 600;
 		}
 		.clock-controls {
 			display: flex;
@@ -93,16 +86,18 @@
 			flex-wrap: wrap;
 		}
 		.clock-badge {
-			background: var(--bg-slate-teal);
-			border: 2px solid var(--sky-aqua);
+			background: var(--subtle-bg);
+			border: 2px solid var(--border-color);
 			padding: 8px 18px;
 			border-radius: 999px;
 			font-weight: 700;
-			color: var(--butter-yellow);
+			color: var(--text-color);
 			font-size: 0.95rem;
 		}
 		.pill-btn {
-			border: 2px solid transparent;
+			background: var(--button-light-blue);
+			color: var(--text-color);
+			border: 2px solid var(--border-color);
 			border-radius: 999px;
 			padding: 9px 18px;
 			font-size: 0.9rem;
@@ -115,30 +110,12 @@
 			transform: translateY(-1px);
 			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 		}
-		.btn-yellow {
-			background: var(--butter-yellow);
-			color: var(--text-dark-teal);
-		}
-		.btn-sage {
-			background: var(--bg-sage);
-			color: var(--text-cream);
-			border-color: var(--butter-yellow);
-		}
-		.btn-periwinkle {
-			background: var(--periwinkle);
-			color: var(--butter-yellow);
-		}
-		.btn-teal {
-			background: var(--bg-slate-teal);
-			color: var(--text-cream);
-			border-color: var(--bg-cream);
-		}
-		.btn-mint {
-			background: var(--bg-mint);
-			color: var(--text-dark-teal);
+		.btn-secondary {
+			background: var(--button-light-blue);
+			color: var(--text-color);
 		}
 
-		/* Top Row: reBound Widget + Instagram Simulator (styled like the Small Timers cards) */
+		/* Top Row: reBound Widget + Instagram Simulator */
 		.status-grid {
 			display: grid;
 			grid-template-columns: 1.3fr 1fr;
@@ -148,27 +125,8 @@
 		@media (max-width: 960px) {
 			.status-grid { grid-template-columns: 1fr; }
 		}
-		.card-cream {
-			background: var(--bg-cream);
-			color: var(--text-dark-teal);
-			border-radius: 24px;
+		.section-card {
 			padding: 20px 24px;
-			box-shadow: 0 8px 20px rgba(31, 68, 110, 0.18);
-		}
-		.card-teal {
-			background: var(--bg-slate-teal);
-			color: var(--text-cream);
-			border: 2px solid rgba(247, 244, 236, 0.25);
-			border-radius: 24px;
-			padding: 20px 24px;
-			box-shadow: 0 8px 20px rgba(31, 68, 110, 0.18);
-		}
-		.card-sage {
-			background: var(--bg-sage);
-			color: var(--text-cream);
-			border-radius: 24px;
-			padding: 20px 24px;
-			box-shadow: 0 8px 20px rgba(31, 68, 110, 0.18);
 		}
 		.widget-top {
 			display: flex;
@@ -179,26 +137,26 @@
 		.widget-tag {
 			font-size: 0.8rem;
 			font-weight: 800;
-			color: var(--bg-sage);
+			color: var(--text-color);
 			letter-spacing: 0.07em;
 		}
 		.widget-risk {
 			font-size: 0.9rem;
 			font-weight: 800;
-			background: var(--bg-mint);
-			color: var(--text-dark-teal);
+			background: var(--subtle-bg);
+			color: var(--text-color);
 			padding: 4px 12px;
 			border-radius: 999px;
 		}
 		.streak-title {
 			font-size: 1.7rem;
 			font-weight: 800;
-			color: var(--bg-slate-teal);
+			color: var(--text-color);
 			margin: 4px 0;
 		}
 		.streak-sub {
 			font-size: 0.88rem;
-			color: var(--text-sage);
+			color: var(--text-color);
 			margin-bottom: 12px;
 			font-weight: 600;
 		}
@@ -207,25 +165,25 @@
 			justify-content: space-between;
 			font-weight: 700;
 			font-size: 0.95rem;
-			color: var(--text-dark-teal);
+			color: var(--text-color);
 			margin-bottom: 8px;
 		}
 		.progress-track {
 			width: 100%;
 			height: 15px;
-			background: var(--bg-mint);
+			background: var(--subtle-bg);
 			border-radius: 999px;
 			overflow: hidden;
 		}
 		.progress-fill {
 			height: 100%;
 			width: 5%;
-			background: var(--bg-sage);
+			background: var(--accent-color);
 			border-radius: 999px;
 			transition: width 0.2s, background 0.2s;
 		}
 
-		/* View Switcher Bar (styled like the rounded "Shapes" pill bar in colors_example.png) */
+		/* View Switcher Bar */
 		.view-bar {
 			display: flex;
 			align-items: center;
@@ -237,29 +195,25 @@
 		.tab-group {
 			display: flex;
 			gap: 8px;
-			background: var(--bg-ocean-panel);
+			background: var(--section-bg);
 			padding: 6px;
 			border-radius: 999px;
-			border: 2px solid var(--border-light);
+			border: 2px solid var(--border-color);
 		}
 		.tab-btn {
 			border: none;
-			background: transparent;
-			color: var(--text-cream);
+			background: var(--button-light-blue);
+			color: var(--text-color);
 			padding: 9px 20px;
 			border-radius: 999px;
 			font-weight: 700;
 			font-size: 0.92rem;
 			cursor: pointer;
-			transition: background 0.15s, color 0.15s;
+			transition: background 0.15s;
 		}
 		.tab-btn.active {
-			background: var(--butter-yellow);
-			color: var(--text-dark-teal);
-		}
-		.tab-btn.active-sage {
-			background: var(--bg-mint);
-			color: var(--text-dark-teal);
+			background: var(--button-light-blue);
+			color: var(--text-color);
 		}
 
 		/* Charts Grid */
@@ -276,14 +230,13 @@
 			.charts-grid { grid-template-columns: 1fr; }
 		}
 		.chart-card {
-			background: var(--bg-cream);
-			color: var(--text-dark-teal);
-			border-radius: 24px;
 			padding: 18px 22px;
 			display: flex;
 			flex-direction: column;
 			gap: 12px;
-			box-shadow: 0 8px 20px rgba(31, 68, 110, 0.18);
+		}
+		#goalValuesCard {
+			margin-bottom: 20px;
 		}
 		.chart-header {
 			display: flex;
@@ -295,22 +248,63 @@
 		.chart-header h2 {
 			font-size: 1.12rem;
 			font-weight: 800;
-			color: var(--bg-slate-teal);
+			color: var(--text-color);
 		}
 		.chart-stat {
 			font-size: 0.86rem;
 			font-weight: 800;
-			background: var(--bg-slate-teal);
-			color: var(--butter-yellow);
+			background: var(--subtle-bg);
+			color: var(--text-color);
 			padding: 5px 13px;
 			border-radius: 999px;
+		}
+		.goal-values-grid {
+			display: grid;
+			grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+			gap: 18px;
+		}
+		@media (max-width: 640px) {
+			.goal-values-grid { grid-template-columns: 1fr; }
+		}
+		.goal-value {
+			background: var(--subtle-bg);
+			border-radius: 20px;
+			padding: 28px;
+			text-align: center;
+		}
+		.goal-values-grid > .goal-value:not(.goal-value-primary) {
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+		}
+		.goal-value-primary {
+			background: var(--button-light-blue);
+			padding: 36px 28px;
+		}
+		.goal-value-label {
+			display: block;
+			font-size: 1rem;
+			font-weight: 700;
+			margin-bottom: 10px;
+		}
+		.goal-value-number {
+			font-size: 2rem;
+			font-weight: 800;
+		}
+		.goal-value-primary .goal-value-label {
+			font-size: 1.15rem;
+			text-transform: uppercase;
+			letter-spacing: 0.06em;
+		}
+		.goal-value-primary .goal-value-number {
+			font-size: clamp(2.5rem, 5vw, 3.5rem);
 		}
 		canvas.plot-canvas {
 			width: 100%;
 			height: 300px;
-			background: var(--bg-slate-teal);
+			background: var(--section-bg);
 			border-radius: 18px;
-			border: 2px solid var(--sky-aqua);
+			border: 2px solid var(--border-color);
 		}
 
 		/* Inputs Grid */
@@ -327,20 +321,16 @@
 			justify-content: space-between;
 			align-items: center;
 			padding: 7px 0;
-			border-bottom: 1px solid rgba(247, 244, 236, 0.2);
+			border-bottom: 1px solid var(--border-color);
 		}
 		.form-row label {
 			font-size: 0.92rem;
-			color: var(--bg-cream);
+			color: var(--text-color);
 			font-weight: 600;
 		}
-		.form-row input {
+		.form-value {
 			width: 132px;
-			background: var(--bg-cream);
-			border: 2px solid var(--sky-aqua);
-			color: var(--text-dark-teal);
-			padding: 6px 10px;
-			border-radius: 12px;
+			color: var(--text-color);
 			text-align: right;
 			font-weight: 800;
 			font-size: 0.92rem;
@@ -353,7 +343,7 @@
 			flex-wrap: wrap;
 		}
 		.err-msg {
-			color: var(--butter-yellow);
+			color: var(--danger-color);
 			font-size: 0.86rem;
 			font-weight: 700;
 		}
@@ -373,26 +363,29 @@
 			display: flex;
 		}
 		.modal {
-			background: var(--bg-cream);
-			color: var(--text-dark-teal);
-			border: 3px solid var(--butter-yellow);
-			border-radius: 26px;
-			max-width: 520px;
+			max-width: 560px;
+			max-height: 92vh;
+			overflow-y: auto;
 			width: 100%;
-			padding: 28px;
-			box-shadow: 0 20px 50px rgba(20, 42, 66, 0.45);
+			padding: 26px 28px;
 		}
 		.modal h3 {
 			font-size: 1.35rem;
-			color: var(--bg-slate-teal);
-			margin-bottom: 14px;
+			color: var(--text-color);
+			margin-bottom: 12px;
+		}
+		.modal-section-title {
+			font-size: 0.95rem;
+			font-weight: 800;
+			color: var(--text-color);
+			margin: 14px 0 8px;
 		}
 		.modal-field {
 			margin-bottom: 14px;
 		}
 		.modal-field label {
 			display: block;
-			color: var(--text-dark-teal);
+			color: var(--text-color);
 			font-weight: 600;
 			margin-bottom: 6px;
 			font-size: 0.95rem;
@@ -401,9 +394,9 @@
 			width: 100%;
 			padding: 10px 12px;
 			border-radius: 12px;
-			border: 2px solid var(--bg-slate-teal);
-			background: #ffffff;
-			color: var(--text-dark-teal);
+			border: 2px solid var(--border-color);
+			background: var(--section-bg);
+			color: var(--text-color);
 			font-size: 1rem;
 			font-weight: 800;
 		}
@@ -411,19 +404,38 @@
 			display: flex;
 			align-items: flex-start;
 			gap: 10px;
-			margin-bottom: 12px;
-			color: var(--text-dark-teal);
+			margin-bottom: 10px;
+			color: var(--text-color);
 			font-weight: 600;
-			font-size: 0.95rem;
+			font-size: 0.92rem;
 			cursor: pointer;
-			background: var(--bg-mint);
-			padding: 10px 14px;
+			background: var(--subtle-bg);
+			padding: 9px 13px;
 			border-radius: 14px;
 		}
 		.check-item input {
 			margin-top: 4px;
 			transform: scale(1.2);
-			accent-color: var(--bg-slate-teal);
+			accent-color: var(--accent-color);
+		}
+		.slider-item {
+			background: var(--subtle-bg);
+			padding: 10px 14px;
+			border-radius: 14px;
+			margin-bottom: 9px;
+		}
+		.slider-top {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			font-size: 0.9rem;
+			font-weight: 700;
+			margin-bottom: 4px;
+		}
+		.slider-item input[type="range"] {
+			width: 100%;
+			accent-color: var(--accent-secondary);
+			cursor: pointer;
 		}
 	</style>
 </head>
@@ -434,64 +446,72 @@
 			<img src="logo.png" alt="reBound Logo" onerror="this.style.display='none'" />
 			<div>
 				<h1>reBound</h1>
-				<span>Browser Analytics & Habit-Taper Simulator</span>
+				<span id="storageStatus">Browser Analytics & Habit-Taper Simulator</span>
 			</div>
 		</div>
 		<div class="clock-controls">
 			<div class="clock-badge" id="clockBadge">Day 1 • 8:00 AM (1 hr/s)</div>
-			<button class="pill-btn btn-yellow" id="pauseBtn" onclick="togglePause()">⏸ Stop Time</button>
-			<button class="pill-btn btn-sage" onclick="triggerNextDay()">☀️ Next Day (Survey)</button>
-			<button class="pill-btn btn-periwinkle" onclick="openStartingSurvey()">📋 Beginning Survey</button>
+			<button class="pill-btn" id="pauseBtn" onclick="togglePause()">⏸ Stop Time</button>
+			<button class="pill-btn btn-secondary" onclick="triggerNextDay()">☀️ Next Day (Survey)</button>
 		</div>
 	</header>
 
 	<!-- Widget + Instagram Doomscroll Simulator Row -->
 	<section class="status-grid">
-		<div class="card-cream">
+		<div class="section-card">
 			<div class="widget-top">
 				<span class="widget-tag">REBOUND WIDGET</span>
 				<span class="widget-risk" id="widgetRisk">Risk: 50.0%</span>
 			</div>
-			<div class="streak-title" id="widgetStreak">Clean Streak: 1 🔥</div>
+			<div class="streak-title" id="widgetStreak">Clean Streak: 1 </div>
 			<div class="streak-sub" id="widgetStatus">Day 1 • 8:00 AM — Keep avoiding doomscrolling!</div>
 			<div class="scroll-row">
 				<span id="widgetScrolled">Scrolled: 0 min</span>
-				<span id="widgetLimit" style="color: var(--bg-sage)">Limit: 30.0 min</span>
+				<span id="widgetLimit">Limit: 30.0 min</span>
 			</div>
 			<div class="progress-track">
 				<div class="progress-fill" id="widgetBar"></div>
 			</div>
 		</div>
 
-		<div class="card-sage" style="display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+		<div class="section-card" style="display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
 			<div>
-				<div class="widget-tag" style="color: var(--butter-yellow); margin-bottom: 6px;">📸 INSTAGRAM REELS SIMULATOR</div>
-				<p style="font-size: 0.92rem; color: var(--text-cream); line-height: 1.4;">
-					Simulating Instagram scrolling adds scroll time and immediately resets your <strong>Clean Streak</strong> to <strong>0</strong>.
+				<div class="widget-tag" style="margin-bottom: 6px;">INSTAGRAM REELS SIMULATOR</div>
+				<p style="font-size: 0.92rem; line-height: 1.4;">
+					Simulating Instagram scrolling adds scroll time
 				</p>
 			</div>
 			<div style="display: flex; gap: 10px; flex-wrap: wrap;">
-				<button class="pill-btn btn-yellow" onclick="simulateInstagram(5, false)">⬇️ Scroll Reel (+5 min)</button>
-				<button class="pill-btn btn-teal" onclick="simulateInstagram(15, true)">🌙 Late-Night Scroll (+15 min)</button>
+				<button class="pill-btn" onclick="simulateInstagram(5, false)">⬇️ Scroll Reel (+5 min)</button>
+				<button class="pill-btn btn-secondary" onclick="simulateInstagram(15, true)">🌙 Late-Night Scroll (+15 min)</button>
 			</div>
 		</div>
 	</section>
 
-	<!-- Graph View Mode Bar (Both Graphs at Once OR Individual Tabs) -->
+	<!-- Daily Goal Values and Calculation Graphs View Bar -->
 	<div class="view-bar">
 		<div class="tab-group">
-			<button class="tab-btn active" id="tabBoth" onclick="setGraphView('both')">📊 Both Graphs at Once</button>
-			<button class="tab-btn" id="tabRisk" onclick="setGraphView('risk')">📈 Risk Sigmoid Tab</button>
-			<button class="tab-btn" id="tabGoal" onclick="setGraphView('goal')">🎯 Daily Goal Tab</button>
+			<button class="tab-btn active" id="tabValues" onclick="setGraphView('values')">🎯 Daily Goal &amp; Relapse Probability</button>
+			<button class="tab-btn" id="tabGraphs" onclick="setGraphView('graphs')">📊 Calculation Graphs</button>
 		</div>
 	</div>
 
-	<!-- Charts Section -->
-	<section class="charts-grid" id="chartsGrid">
+	<section class="chart-card" id="goalValuesCard">
+		<div class="chart-header">
+			<h2>Current Results</h2>
+		</div>
+		<div class="goal-values-grid">
+			<div class="goal-value goal-value-primary"><span class="goal-value-label">Today's Daily Limit</span><span class="goal-value-number" id="goalValueDaily">70.5 min</span></div>
+			<div class="goal-value"><span class="goal-value-label">Relapse probability</span><span class="goal-value-number" id="goalValueRelapse">6.0%</span></div>
+		</div>
+	</section>
+
+	<!-- Calculation Graphs -->
+	<section class="charts-grid" id="calculationGraphs" style="display: none;">
 		<div class="chart-card" id="riskChartCard">
 			<div class="chart-header">
-				<h2>reBound — Doomscrolling Risk (Sigmoid)</h2>
-				<span class="chart-stat" id="riskChartStat">Risk: 50.0% (z = 0.00)</span>
+				<h2>reBound — Doomscrolling Risk</h2>
+				<span class="chart-stat" id="riskChartStat">Risk: 50.0%</span>
 			</div>
 			<canvas class="plot-canvas" id="riskCanvas"></canvas>
 		</div>
@@ -499,39 +519,31 @@
 		<div class="chart-card" id="goalChartCard">
 			<div class="chart-header">
 				<h2>reBound — Daily Goal Progression</h2>
-				<span class="chart-stat" style="background: var(--bg-sage); color: var(--text-cream)" id="goalChartStat">Day 1 Goal: 57.1 min (Target: 30m)</span>
+				<span class="chart-stat" id="goalChartStat">Day 1 Goal: 70.5 min (Target: 30 min)</span>
 			</div>
 			<canvas class="plot-canvas" id="goalCanvas"></canvas>
 		</div>
 	</section>
 
-	<!-- Interactive Variable Inputs for Both Equations -->
+	<!-- Current Variables -->
 	<section class="inputs-grid">
-		<div class="card-teal">
-			<h3 style="margin-bottom: 10px; font-size: 1.08rem; color: var(--butter-yellow);">Risk Score Variables (calc_risk)</h3>
-			<div class="form-row"><label>nightScrolling (min)</label><input id="in_nightScrolling" type="text" value="0" /></div>
-			<div class="form-row"><label>psychState (0-1)</label><input id="in_psychState" type="text" value="0" /></div>
-			<div class="form-row"><label>timeScrolling (min)</label><input id="in_timeScrolling" type="text" value="0" /></div>
-			<div class="form-row"><label>dailyGoal (min)</label><input id="in_dailyGoal" type="text" value="30" /></div>
-			<div class="form-row"><label>timeBetweenLogins (min)</label><input id="in_timeBetweenLogins" type="text" value="0" /></div>
-			<div class="form-row"><label>Dopamine (%)</label><input id="in_Dopamine" type="text" value="50%" /></div>
-			<div class="card-actions">
-				<button class="pill-btn btn-yellow" onclick="applyRiskInputs()">Update Risk</button>
-				<span class="err-msg" id="riskErr"></span>
-			</div>
+		<div class="section-card">
+			<h3 style="margin-bottom: 10px; font-size: 1.08rem;">Risk Score Factors</h3>
+			<div class="form-row"><label>Night Scrolling (min)</label><span class="form-value" id="in_nightScrolling">0</span></div>
+			<div class="form-row"><label>Stress / Psych Level (0-1)</label><span class="form-value" id="in_psychState">0</span></div>
+			<div class="form-row"><label>Total Scrolling Today (min)</label><span class="form-value" id="in_timeScrolling">0</span></div>
+			<div class="form-row"><label>Daily Limit (min)</label><span class="form-value" id="in_dailyGoal">30</span></div>
+			<div class="form-row"><label>Time Between Logins (min)</label><span class="form-value" id="in_timeBetweenLogins">0</span></div>
+			<div class="form-row"><label>Healthy Dopamine (%)</label><span class="form-value" id="in_Dopamine">50%</span></div>
 		</div>
 
-		<div class="card-sage">
-			<h3 style="margin-bottom: 10px; font-size: 1.08rem; color: var(--butter-yellow);">Daily Goal Parameters (calc_daily_goal)</h3>
-			<div class="form-row"><label>day (t)</label><input id="goal_day" type="text" value="1" /></div>
-			<div class="form-row"><label>Tstart (min)</label><input id="goal_Tstart" type="text" value="60" /></div>
-			<div class="form-row"><label>Tgoal (min)</label><input id="goal_Tgoal" type="text" value="30" /></div>
-			<div class="form-row"><label>timeBetweenLogins (min)</label><input id="goal_timeBetweenLogins" type="text" value="0" /></div>
-			<div class="form-row"><label>relapseProbability (0-1)</label><input id="goal_relapseProbability" type="text" value="0.500" /></div>
-			<div class="card-actions">
-				<button class="pill-btn btn-yellow" onclick="applyGoalInputs()">Update Daily Goal</button>
-				<span class="err-msg" id="goalErr"></span>
-			</div>
+		<div class="section-card">
+			<h3 style="margin-bottom: 10px; font-size: 1.08rem;">Daily Goal Settings</h3>
+			<div class="form-row"><label>Current Day</label><span class="form-value" id="goal_day">1</span></div>
+			<div class="form-row"><label>Starting Time (min)</label><span class="form-value" id="goal_Tstart">60</span></div>
+			<div class="form-row"><label>Target Goal (min)</label><span class="form-value" id="goal_Tgoal">30</span></div>
+			<div class="form-row"><label>Time Between Logins (min)</label><span class="form-value" id="goal_timeBetweenLogins">0</span></div>
+			<div class="form-row"><label>Relapse Risk (0-1)</label><span class="form-value" id="goal_relapseProbability">0.500</span></div>
 		</div>
 	</section>
 
@@ -540,27 +552,48 @@
 		<div class="modal">
 			<h3>reBound — Starting Survey</h3>
 			<div class="modal-field">
-				<label>How many minutes a day do you currently spend doomscrolling? (Tstart)</label>
-				<input type="number" id="survey_Tstart" value="60" min="1" />
+				<label>How many minutes a day do you currently spend doomscrolling? (Max: 1440)</label>
+				<input type="number" id="survey_Tstart" value="60" min="1" max="1440" />
 			</div>
 			<div class="modal-field">
-				<label>How many minutes a day do you want to get your doomscrolling down to? (Tgoal)</label>
-				<input type="number" id="survey_Tgoal" value="30" min="1" />
+				<label>How many minutes a day do you want to get your doomscrolling down to? (Max: 1440)</label>
+				<input type="number" id="survey_Tgoal" value="30" min="1" max="1440" />
 			</div>
-			<button class="pill-btn btn-teal" onclick="submitStartingSurvey()">Continue</button>
+			<div class="err-msg" id="surveyErr" style="margin-bottom: 10px;"></div>
+			<button class="pill-btn" onclick="submitStartingSurvey()">Continue</button>
 		</div>
 	</div>
 
-	<!-- New Day Dopamine Survey Modal -->
+	<!-- New Day Dopamine + Psych State Survey Modal -->
 	<div class="modal-backdrop" id="newDayModal">
 		<div class="modal">
 			<h3 id="newDayTitle">Day 2 — New Day Survey</h3>
+			<div class="modal-section-title">Healthy Dopamine Habits</div>
 			<label class="check-item"><input type="checkbox" class="dop-check" data-pts="30" /> <span>I got 7+ hours of uninterrupted sleep last night.</span></label>
 			<label class="check-item"><input type="checkbox" class="dop-check" data-pts="20" /> <span>I avoided looking at screens for at least 1 hour before bed.</span></label>
 			<label class="check-item"><input type="checkbox" class="dop-check" data-pts="25" /> <span>I spent time outside in natural sunlight or exercised yesterday.</span></label>
 			<label class="check-item"><input type="checkbox" class="dop-check" data-pts="25" /> <span>I engaged in an offline, deep-focus hobby (e.g., reading a physical book, playing an instrument, sketching).</span></label>
+
+			<div class="modal-section-title">Psychological State Sliders (0 – 5)</div>
+			<div class="slider-item">
+				<div class="slider-top"><span>Craving</span><span id="val_craving">0</span></div>
+				<input type="range" id="slider_craving" min="0" max="5" step="0.5" value="0" oninput="updatePsychSliders()" />
+			</div>
+			<div class="slider-item">
+				<div class="slider-top"><span>Withdrawal</span><span id="val_withdrawal">0</span></div>
+				<input type="range" id="slider_withdrawal" min="0" max="5" step="0.5" value="0" oninput="updatePsychSliders()" />
+			</div>
+			<div class="slider-item">
+				<div class="slider-top"><span>FOMO (Fear of Missing Out)</span><span id="val_fomo">0</span></div>
+				<input type="range" id="slider_fomo" min="0" max="5" step="0.5" value="0" oninput="updatePsychSliders()" />
+			</div>
+			<div class="slider-item">
+				<div class="slider-top"><span>Stress</span><span id="val_stress">0</span></div>
+				<input type="range" id="slider_stress" min="0" max="5" step="0.5" value="0" oninput="updatePsychSliders()" />
+			</div>
+
 			<div style="margin-top: 16px;">
-				<button class="pill-btn btn-sage" onclick="submitNewDaySurvey()">Continue</button>
+				<button class="pill-btn" onclick="submitNewDaySurvey()">Continue</button>
 			</div>
 		</div>
 	</div>
@@ -568,11 +601,19 @@
 	<script>
 		// Weights matching calculations.py
 		const w0 = -2.2, w1 = 1.8, w2 = 2.5, w3 = 2.5, w4 = 0.8, w5 = 0.4;
+		const MAX_DAILY_MINS = 60 * 24;
+		const STORAGE_API_URL = 'http://127.0.0.1:8765/api/data_storage';
 
 		const state = {
+			Instagram: 28,
+			Tiktok: 5,
 			Tstart: 60.0,
 			Tgoal: 30.0,
 			nightScrolling: 0.0,
+			craving: 0.0,
+			withdrawal: 0.0,
+			fomo: 0.0,
+			stress: 0.0,
 			psychState: 0.0,
 			timeScrolling: 0.0,
 			dailyGoal: 30.0,
@@ -585,8 +626,114 @@
 			sigmoidRiskScore: 0.5,
 			paused: false,
 			popupOpen: false,
-			viewMode: 'both'
+			viewMode: 'values'
 		};
+
+		function calcPsychStateFromSliders(craving, withdrawal, fomo, stress) {
+			return craving / 20.0 + withdrawal / 20.0 + fomo / 20.0 + stress / 20.0;
+		}
+
+		function updatePsychSliders() {
+			const c = parseFloat(document.getElementById('slider_craving').value) || 0;
+			const w = parseFloat(document.getElementById('slider_withdrawal').value) || 0;
+			const f = parseFloat(document.getElementById('slider_fomo').value) || 0;
+			const s = parseFloat(document.getElementById('slider_stress').value) || 0;
+			document.getElementById('val_craving').textContent = c;
+			document.getElementById('val_withdrawal').textContent = w;
+			document.getElementById('val_fomo').textContent = f;
+			document.getElementById('val_stress').textContent = s;
+			const psych = calcPsychStateFromSliders(c, w, f, s);
+			state.craving = c;
+			state.withdrawal = w;
+			state.fomo = f;
+			state.stress = s;
+			state.psychState = psych;
+			saveToDataStorage();
+		}
+
+		async function loadDataStorage() {
+			try {
+				const res = await fetch(STORAGE_API_URL);
+				if (res.ok) {
+					const data = await res.json();
+					if (typeof data.Instagram === 'number') state.Instagram = data.Instagram;
+					if (typeof data.Tiktok === 'number') state.Tiktok = data.Tiktok;
+					if (typeof data.Tstart === 'number' && data.Tstart > 0) {
+						state.Tstart = Math.min(MAX_DAILY_MINS, data.Tstart);
+					} else if (typeof data.current_scrolling_min === 'number' && data.current_scrolling_min > 0) {
+						state.Tstart = Math.min(MAX_DAILY_MINS, data.current_scrolling_min);
+					}
+					if (typeof data.Tgoal === 'number' && data.Tgoal > 0) {
+						state.Tgoal = Math.min(state.Tstart, MAX_DAILY_MINS, data.Tgoal);
+					} else if (typeof data.initial_goal === 'number' && data.initial_goal > 0) {
+						state.Tgoal = Math.min(state.Tstart, MAX_DAILY_MINS, data.initial_goal);
+					}
+					if (typeof data.nightScrolling === 'number') state.nightScrolling = Math.max(0, data.nightScrolling);
+					if (typeof data.craving === 'number') state.craving = Math.min(5, Math.max(0, data.craving));
+					if (typeof data.withdrawal === 'number') state.withdrawal = Math.min(5, Math.max(0, data.withdrawal));
+					if (typeof data.fomo === 'number') state.fomo = Math.min(5, Math.max(0, data.fomo));
+					if (typeof data.stress === 'number') state.stress = Math.min(5, Math.max(0, data.stress));
+					if (typeof data.psychState === 'number') {
+						state.psychState = Math.min(1, Math.max(0, data.psychState));
+					} else {
+						state.psychState = calcPsychStateFromSliders(state.craving, state.withdrawal, state.fomo, state.stress);
+					}
+					if (typeof data.timeScrolling === 'number') state.timeScrolling = Math.max(0, data.timeScrolling);
+					if (typeof data.timeBetweenLogins === 'number') state.timeBetweenLogins = Math.max(0, data.timeBetweenLogins);
+					if (typeof data.Dopamine === 'number') state.Dopamine = Math.min(100, Math.max(0, data.Dopamine));
+					if (typeof data.cleanScore === 'number') state.cleanScore = Math.max(0, Math.round(data.cleanScore));
+					if (typeof data.current_day === 'number' && data.current_day >= 1) state.current_day = Math.round(data.current_day);
+					if (typeof data.sim_minutes === 'number') state.sim_minutes = data.sim_minutes;
+					updateDailyGoalFromState();
+					syncVariableDisplays();
+					refreshUI(true);
+				}
+			} catch (_) {
+				// Fallback if local server isn't running yet
+			}
+		}
+
+		async function saveToDataStorage() {
+			const payload = {
+				Instagram: state.Instagram,
+				Tiktok: state.Tiktok,
+				Tstart: state.Tstart,
+				Tgoal: state.Tgoal,
+				initial_goal: state.Tgoal,
+				current_scrolling_min: state.Tstart,
+				nightScrolling: state.nightScrolling,
+				craving: state.craving,
+				withdrawal: state.withdrawal,
+				fomo: state.fomo,
+				stress: state.stress,
+				psychState: Number(state.psychState.toFixed(4)),
+				timeScrolling: state.timeScrolling,
+				dailyGoal: Number(state.dailyGoal.toFixed(4)),
+				timeBetweenLogins: state.timeBetweenLogins,
+				Dopamine: state.Dopamine,
+				cleanScore: state.cleanScore,
+				current_day: state.current_day,
+				sim_minutes: state.sim_minutes,
+				riskScore: Number(state.riskScore.toFixed(4)),
+				sigmoidRiskScore: Number(state.sigmoidRiskScore.toFixed(4))
+			};
+			try {
+				localStorage.setItem('reBound_data_storage', JSON.stringify(payload, null, 4));
+			} catch (_) {}
+			try {
+				const res = await fetch(STORAGE_API_URL, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(payload)
+				});
+				if (res.ok) {
+					const statusEl = document.getElementById('storageStatus');
+					if (statusEl) {
+						statusEl.textContent = `Saved all variables to data_storage.json (Day ${state.current_day}, Goal: ${state.dailyGoal.toFixed(1)}m, Risk: ${(state.sigmoidRiskScore * 100).toFixed(1)}%)`;
+					}
+				}
+			} catch (_) {}
+		}
 
 		function calcSigmoid(z) {
 			return 1.0 / (1.0 + Math.exp(-z));
@@ -594,11 +741,11 @@
 
 		function calcDailyGoal(day, Tstart, Tgoal, timeBetweenLogins = 0.0, relapseProbability = 0.5) {
 			const reasonableTimeBetweenLogins = 60.0;
-			const dampingCoefficient = 0.5;
+			const dampingCoefficient = 0.1;
 			const baseGoal = (d) => Tgoal + (Tstart - Tgoal) * Math.exp(-0.1 * d);
 			const behavioralIndex = Math.max(0.0, 1.0 - (timeBetweenLogins / reasonableTimeBetweenLogins));
 			const personalState = dampingCoefficient * (relapseProbability + behavioralIndex) * (Tstart - Tgoal);
-			return baseGoal(day + 1) + personalState;
+			return Math.min(Tstart, baseGoal(day + 1) + personalState);
 		}
 
 		function recalculateRisk() {
@@ -636,24 +783,37 @@
 			return `${hrs12}:${String(mins).padStart(2, '0')} ${period}`;
 		}
 
-		function syncInputsFromState() {
-			document.getElementById('in_nightScrolling').value = state.nightScrolling;
-			document.getElementById('in_psychState').value = state.psychState;
-			document.getElementById('in_timeScrolling').value = state.timeScrolling;
-			document.getElementById('in_dailyGoal').value = state.dailyGoal.toFixed(1);
-			document.getElementById('in_timeBetweenLogins').value = state.timeBetweenLogins;
-			document.getElementById('in_Dopamine').value = `${Math.round(state.Dopamine)}%`;
+		function syncVariableDisplays() {
+			document.getElementById('in_nightScrolling').textContent = state.nightScrolling;
+			document.getElementById('in_psychState').textContent = Number(state.psychState.toFixed(3));
+			document.getElementById('in_timeScrolling').textContent = state.timeScrolling;
+			document.getElementById('in_dailyGoal').textContent = state.dailyGoal.toFixed(1);
+			document.getElementById('in_timeBetweenLogins').textContent = state.timeBetweenLogins;
+			document.getElementById('in_Dopamine').textContent = `${Math.round(state.Dopamine)}%`;
 
-			document.getElementById('goal_day').value = state.current_day;
-			document.getElementById('goal_Tstart').value = state.Tstart;
-			document.getElementById('goal_Tgoal').value = state.Tgoal;
-			document.getElementById('goal_timeBetweenLogins').value = state.timeBetweenLogins;
-			document.getElementById('goal_relapseProbability').value = state.sigmoidRiskScore.toFixed(3);
+			document.getElementById('goal_day').textContent = state.current_day;
+			document.getElementById('goal_Tstart').textContent = state.Tstart;
+			document.getElementById('goal_Tgoal').textContent = state.Tgoal;
+			document.getElementById('goal_timeBetweenLogins').textContent = state.timeBetweenLogins;
+			document.getElementById('goal_relapseProbability').textContent = state.sigmoidRiskScore.toFixed(3);
+		}
+
+		function getThemeColors() {
+			const cs = getComputedStyle(document.documentElement);
+			return {
+				sectionBg: cs.getPropertyValue('--section-bg').trim() || '#bee7fbd6',
+				text: cs.getPropertyValue('--text-color').trim() || '#2f555e',
+				accent: cs.getPropertyValue('--accent-color').trim() || '#5b9279',
+				accentSec: cs.getPropertyValue('--accent-secondary').trim() || '#2a6eed',
+				border: cs.getPropertyValue('--border-color').trim() || '#98cede',
+				danger: cs.getPropertyValue('--danger-color').trim() || '#d9534f'
+			};
 		}
 
 		function drawRiskChart() {
 			const canvas = document.getElementById('riskCanvas');
 			if (!canvas || canvas.offsetParent === null) return;
+			const colors = getThemeColors();
 			const dpr = window.devicePixelRatio || 1;
 			const rect = canvas.getBoundingClientRect();
 			canvas.width = rect.width * dpr;
@@ -666,30 +826,32 @@
 			const pw = W - pad.l - pad.r, ph = H - pad.t - pad.b;
 
 			ctx.clearRect(0, 0, W, H);
+			ctx.fillStyle = colors.sectionBg;
+			ctx.fillRect(0, 0, W, H);
 			const xLim = Math.max(10.0, Math.abs(state.riskScore) + 2.0);
 			const xToPx = (x) => pad.l + ((x + xLim) / (2 * xLim)) * pw;
 			const yToPx = (y) => pad.t + (1 - (y + 0.05) / 1.1) * ph;
 
-			// Grid (colors_example palette)
-			ctx.strokeStyle = 'rgba(214, 231, 205, 0.25)';
+			// Grid
+			ctx.strokeStyle = colors.border;
 			ctx.lineWidth = 1;
 			ctx.setLineDash([4, 4]);
 			for (let yv = 0; yv <= 1.0; yv += 0.25) {
 				const py = yToPx(yv);
 				ctx.beginPath(); ctx.moveTo(pad.l, py); ctx.lineTo(W - pad.r, py); ctx.stroke();
-				ctx.fillStyle = '#f7f4ec'; ctx.font = '11px Segoe UI'; ctx.textAlign = 'right';
+				ctx.fillStyle = colors.text; ctx.font = '11px Segoe UI'; ctx.textAlign = 'right';
 				ctx.fillText(yv.toFixed(2), pad.l - 8, py + 4);
 			}
 			for (let xv = -Math.floor(xLim); xv <= Math.floor(xLim); xv += Math.max(2, Math.floor(xLim / 4))) {
 				const px = xToPx(xv);
 				ctx.beginPath(); ctx.moveTo(px, pad.t); ctx.lineTo(px, H - pad.b); ctx.stroke();
-				ctx.fillStyle = '#f7f4ec'; ctx.font = '11px Segoe UI'; ctx.textAlign = 'center';
+				ctx.fillStyle = colors.text; ctx.font = '11px Segoe UI'; ctx.textAlign = 'center';
 				ctx.fillText(xv, px, H - pad.b + 16);
 			}
 			ctx.setLineDash([]);
 
-			// Sigmoid curve (sky aqua #98cede)
-			ctx.strokeStyle = '#98cede';
+			// Sigmoid curve
+			ctx.strokeStyle = colors.accent;
 			ctx.lineWidth = 3.0;
 			ctx.beginPath();
 			const N = 200;
@@ -701,26 +863,27 @@
 			}
 			ctx.stroke();
 
-			// Current Risk point (butter yellow #ffd66b)
+			// Current Risk point
 			const rx = xToPx(state.riskScore), ry = yToPx(state.sigmoidRiskScore);
-			ctx.fillStyle = '#ffd66b';
+			ctx.fillStyle = colors.accentSec;
 			ctx.beginPath();
 			ctx.arc(rx, ry, 7, 0, Math.PI * 2);
 			ctx.fill();
-			ctx.strokeStyle = '#f7f4ec';
+			ctx.strokeStyle = colors.text;
 			ctx.lineWidth = 2;
 			ctx.stroke();
 
 			// Axis label
-			ctx.fillStyle = '#d6e7cd';
+			ctx.fillStyle = colors.text;
 			ctx.font = 'bold 11px Segoe UI';
 			ctx.textAlign = 'center';
-			ctx.fillText('Risk Score (z)', pad.l + pw / 2, H - 6);
+			ctx.fillText('Risk Score', pad.l + pw / 2, H - 6);
 		}
 
 		function drawGoalChart() {
 			const canvas = document.getElementById('goalCanvas');
 			if (!canvas || canvas.offsetParent === null) return;
+			const colors = getThemeColors();
 			const dpr = window.devicePixelRatio || 1;
 			const rect = canvas.getBoundingClientRect();
 			canvas.width = rect.width * dpr;
@@ -733,75 +896,77 @@
 			const pw = W - pad.l - pad.r, ph = H - pad.t - pad.b;
 
 			ctx.clearRect(0, 0, W, H);
+			ctx.fillStyle = colors.sectionBg;
+			ctx.fillRect(0, 0, W, H);
 			const maxDay = Math.max(30, state.current_day + 5);
 			const N = 200;
 			const pts = [];
-			let maxG = Math.max(state.Tstart, state.Tgoal, state.dailyGoal);
+			let maxGoal = Math.max(state.Tstart, state.Tgoal, state.dailyGoal);
 			for (let i = 0; i <= N; i++) {
-				const d = (maxDay * i) / N;
-				const g = calcDailyGoal(d, state.Tstart, state.Tgoal, state.timeBetweenLogins, state.sigmoidRiskScore);
-				if (g > maxG) maxG = g;
-				pts.push({ d, g });
+				const day = (maxDay * i) / N;
+				const goal = calcDailyGoal(day, state.Tstart, state.Tgoal, state.timeBetweenLogins, state.sigmoidRiskScore);
+				maxGoal = Math.max(maxGoal, goal);
+				pts.push({ day, goal });
 			}
 			const yMin = Math.max(0, Math.min(state.Tgoal, state.Tstart) * 0.8);
-			const yMax = maxG * 1.1 + 5.0;
-
-			const xToPx = (d) => pad.l + (d / maxDay) * pw;
-			const yToPx = (g) => pad.t + (1 - (g - yMin) / Math.max(1, yMax - yMin)) * ph;
+			const yMax = maxGoal * 1.1 + 5.0;
+			const xToPx = (day) => pad.l + (day / maxDay) * pw;
+			const yToPx = (goal) => pad.t + (1 - (goal - yMin) / Math.max(1, yMax - yMin)) * ph;
 
 			// Grid
-			ctx.strokeStyle = 'rgba(214, 231, 205, 0.25)';
+			ctx.strokeStyle = colors.border;
 			ctx.lineWidth = 1;
 			ctx.setLineDash([4, 4]);
 			for (let i = 0; i <= 4; i++) {
-				const gv = yMin + ((yMax - yMin) * i) / 4;
-				const py = yToPx(gv);
+				const goal = yMin + ((yMax - yMin) * i) / 4;
+				const py = yToPx(goal);
 				ctx.beginPath(); ctx.moveTo(pad.l, py); ctx.lineTo(W - pad.r, py); ctx.stroke();
-				ctx.fillStyle = '#f7f4ec'; ctx.font = '11px Segoe UI'; ctx.textAlign = 'right';
-				ctx.fillText(Math.round(gv) + 'm', pad.l - 8, py + 4);
+				ctx.fillStyle = colors.text; ctx.font = '11px Segoe UI'; ctx.textAlign = 'right';
+				ctx.fillText(Math.round(goal) + 'm', pad.l - 8, py + 4);
 			}
-			for (let d = 0; d <= maxDay; d += 5) {
-				const px = xToPx(d);
+			for (let day = 0; day <= maxDay; day += 5) {
+				const px = xToPx(day);
 				ctx.beginPath(); ctx.moveTo(px, pad.t); ctx.lineTo(px, H - pad.b); ctx.stroke();
-				ctx.fillStyle = '#f7f4ec'; ctx.font = '11px Segoe UI'; ctx.textAlign = 'center';
-				ctx.fillText(d, px, H - pad.b + 16);
+				ctx.fillStyle = colors.text; ctx.font = '11px Segoe UI'; ctx.textAlign = 'center';
+				ctx.fillText(day, px, H - pad.b + 16);
 			}
 
-			// Target line (Tgoal in sky aqua)
-			const ty = yToPx(state.Tgoal);
-			ctx.strokeStyle = '#98cede';
+			// Target line
+			ctx.strokeStyle = colors.border;
 			ctx.lineWidth = 1.8;
-			ctx.beginPath(); ctx.moveTo(pad.l, ty); ctx.lineTo(W - pad.r, ty); ctx.stroke();
+			const targetY = yToPx(state.Tgoal);
+			ctx.beginPath(); ctx.moveTo(pad.l, targetY); ctx.lineTo(W - pad.r, targetY); ctx.stroke();
 			ctx.setLineDash([]);
 
-			// Daily Goal Curve (soft mint #d6e7cd)
-			ctx.strokeStyle = '#d6e7cd';
+			// Daily Goal Curve
+			ctx.strokeStyle = colors.accent;
 			ctx.lineWidth = 3.0;
 			ctx.beginPath();
-			pts.forEach((p, idx) => {
-				const px = xToPx(p.d), py = yToPx(p.g);
-				if (idx === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+			pts.forEach((point, index) => {
+				const px = xToPx(point.day), py = yToPx(point.goal);
+				if (index === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
 			});
 			ctx.stroke();
 
-			// Current Day Point (butter yellow #ffd66b)
-			const cx = xToPx(state.current_day), cy = yToPx(state.dailyGoal);
-			ctx.fillStyle = '#ffd66b';
+			// Current Day Point
+			const currentX = xToPx(state.current_day), currentY = yToPx(state.dailyGoal);
+			ctx.fillStyle = colors.accentSec;
 			ctx.beginPath();
-			ctx.arc(cx, cy, 7, 0, Math.PI * 2);
+			ctx.arc(currentX, currentY, 7, 0, Math.PI * 2);
 			ctx.fill();
-			ctx.strokeStyle = '#f7f4ec';
+			ctx.strokeStyle = colors.text;
 			ctx.lineWidth = 2;
 			ctx.stroke();
 
-			ctx.fillStyle = '#d6e7cd';
+			ctx.fillStyle = colors.text;
 			ctx.font = 'bold 11px Segoe UI';
 			ctx.textAlign = 'center';
-			ctx.fillText('Day (t)', pad.l + pw / 2, H - 6);
+			ctx.fillText('Day', pad.l + pw / 2, H - 6);
 		}
 
 		function refreshUI(redrawCharts = true) {
 			recalculateRisk();
+			const colors = getThemeColors();
 			const timeStr = formatSimTime(state.sim_minutes);
 			document.getElementById('clockBadge').textContent =
 				`Day ${state.current_day} • ${timeStr} (${state.paused ? 'Paused' : '1 hr/s'})`;
@@ -810,12 +975,12 @@
 			const streakEl = document.getElementById('widgetStreak');
 			const statusEl = document.getElementById('widgetStatus');
 			if (state.cleanScore > 0) {
-				streakEl.textContent = `Clean Streak: ${state.cleanScore} 🔥`;
-				streakEl.style.color = '#3e6b75';
+				streakEl.textContent = `Clean Streak: ${state.cleanScore}`;
+				streakEl.style.color = colors.text;
 				statusEl.textContent = `Day ${state.current_day} • ${timeStr} — Keep avoiding doomscrolling!`;
 			} else {
 				streakEl.textContent = 'Clean Streak: 0 ⚠️';
-				streakEl.style.color = '#d9534f';
+				streakEl.style.color = colors.danger;
 				statusEl.textContent = `Day ${state.current_day} • ${timeStr} — Clean streak reset!`;
 			}
 			const effectiveScrolled = Math.max(state.timeScrolling, state.nightScrolling);
@@ -825,12 +990,14 @@
 			const ratio = state.dailyGoal > 0 ? Math.min(1, Math.max(0.04, effectiveScrolled / state.dailyGoal)) : 1;
 			const bar = document.getElementById('widgetBar');
 			bar.style.width = `${ratio * 100}%`;
-			bar.style.background = effectiveScrolled <= state.dailyGoal ? '#5b9279' : '#f26d6d';
+			bar.style.background = effectiveScrolled <= state.dailyGoal ? colors.accent : colors.danger;
 
 			document.getElementById('riskChartStat').textContent =
-				`Risk: ${(state.sigmoidRiskScore * 100).toFixed(1)}% (z = ${state.riskScore.toFixed(2)})`;
+				`Risk: ${(state.sigmoidRiskScore * 100).toFixed(1)}%`;
 			document.getElementById('goalChartStat').textContent =
-				`Day ${state.current_day} Goal: ${state.dailyGoal.toFixed(1)} min (Target: ${state.Tgoal.toFixed(0)}m)`;
+				`Day ${state.current_day} Goal: ${state.dailyGoal.toFixed(1)} min (Target: ${state.Tgoal.toFixed(0)} min)`;
+			document.getElementById('goalValueDaily').textContent = `${state.dailyGoal.toFixed(1)} min`;
+			document.getElementById('goalValueRelapse').textContent = `${(state.sigmoidRiskScore * 100).toFixed(1)}%`;
 
 			if (redrawCharts) {
 				drawRiskChart();
@@ -840,89 +1007,11 @@
 
 		function setGraphView(mode) {
 			state.viewMode = mode;
-			const grid = document.getElementById('chartsGrid');
-			const riskCard = document.getElementById('riskChartCard');
-			const goalCard = document.getElementById('goalChartCard');
-
-			document.getElementById('tabBoth').className = 'tab-btn' + (mode === 'both' ? ' active' : '');
-			document.getElementById('tabRisk').className = 'tab-btn' + (mode === 'risk' ? ' active' : '');
-			document.getElementById('tabGoal').className = 'tab-btn' + (mode === 'goal' ? ' active-sage' : '');
-
-			if (mode === 'both') {
-				grid.classList.remove('single-col');
-				riskCard.style.display = 'flex';
-				goalCard.style.display = 'flex';
-			} else if (mode === 'risk') {
-				grid.classList.add('single-col');
-				riskCard.style.display = 'flex';
-				goalCard.style.display = 'none';
-			} else {
-				grid.classList.add('single-col');
-				riskCard.style.display = 'none';
-				goalCard.style.display = 'flex';
-			}
-			refreshUI(true);
-		}
-
-		function applyRiskInputs(syncBoxes = true) {
-			const ns = parseFloat(document.getElementById('in_nightScrolling').value);
-			const ps = parseFloat(document.getElementById('in_psychState').value);
-			const ts = parseFloat(document.getElementById('in_timeScrolling').value);
-			const dg = parseFloat(document.getElementById('in_dailyGoal').value);
-			const tbl = parseFloat(document.getElementById('in_timeBetweenLogins').value);
-			const dop = parseFloat(document.getElementById('in_Dopamine').value.replace('%', '').trim());
-
-			if ([ns, ps, ts, dg, tbl, dop].some(isNaN) || dg <= 0) {
-				if (syncBoxes) {
-					document.getElementById('riskErr').textContent = 'Enter valid numbers (dailyGoal > 0).';
-				}
-				return;
-			}
-			document.getElementById('riskErr').textContent = '';
-			state.nightScrolling = ns;
-			state.psychState = ps;
-			state.timeScrolling = ts;
-			state.dailyGoal = dg;
-			state.timeBetweenLogins = tbl;
-			state.Dopamine = dop;
-			recalculateRisk();
-
-			if (Math.max(state.timeScrolling, state.nightScrolling) > state.dailyGoal) {
-				state.cleanScore = 0;
-			}
-			document.getElementById('goal_timeBetweenLogins').value = state.timeBetweenLogins;
-			document.getElementById('goal_relapseProbability').value = state.sigmoidRiskScore.toFixed(3);
-			if (syncBoxes) {
-				syncInputsFromState();
-			}
-			refreshUI(true);
-		}
-
-		function applyGoalInputs(syncBoxes = true) {
-			const d = Math.max(1, Math.round(parseFloat(document.getElementById('goal_day').value)));
-			const ts = parseFloat(document.getElementById('goal_Tstart').value);
-			const tg = parseFloat(document.getElementById('goal_Tgoal').value);
-			const tbl = parseFloat(document.getElementById('goal_timeBetweenLogins').value);
-			const rp = parseFloat(document.getElementById('goal_relapseProbability').value);
-
-			if ([d, ts, tg, tbl, rp].some(isNaN) || tg <= 0) {
-				if (syncBoxes) {
-					document.getElementById('goalErr').textContent = 'Enter valid numbers (Tgoal > 0).';
-				}
-				return;
-			}
-			document.getElementById('goalErr').textContent = '';
-			state.current_day = d;
-			state.Tstart = ts;
-			state.Tgoal = tg;
-			state.timeBetweenLogins = tbl;
-			state.sigmoidRiskScore = rp;
-			state.dailyGoal = calcDailyGoal(d, ts, tg, tbl, rp);
-			if (syncBoxes) {
-				syncInputsFromState();
-			} else {
-				document.getElementById('in_dailyGoal').value = state.dailyGoal.toFixed(1);
-			}
+			const showGraphs = mode === 'graphs';
+			document.getElementById('goalValuesCard').style.display = showGraphs ? 'none' : 'flex';
+			document.getElementById('calculationGraphs').style.display = showGraphs ? 'grid' : 'none';
+			document.getElementById('tabValues').className = 'tab-btn' + (!showGraphs ? ' active' : '');
+			document.getElementById('tabGraphs').className = 'tab-btn' + (showGraphs ? ' active' : '');
 			refreshUI(true);
 		}
 
@@ -934,29 +1023,51 @@
 				state.cleanScore = 0;
 			}
 			recalculateRisk();
-			syncInputsFromState();
+			syncVariableDisplays();
 			refreshUI(true);
+			saveToDataStorage();
 		}
 
 		function togglePause() {
 			state.paused = !state.paused;
 			const btn = document.getElementById('pauseBtn');
 			btn.textContent = state.paused ? '▶ Start Time' : '⏸ Stop Time';
-			btn.className = 'pill-btn ' + (state.paused ? 'btn-mint' : 'btn-yellow');
+			btn.className = 'pill-btn' + (state.paused ? ' btn-secondary' : '');
 			refreshUI(false);
 		}
 
 		function openStartingSurvey() {
 			state.popupOpen = true;
-			document.getElementById('survey_Tstart').value = Math.round(state.Tstart);
-			document.getElementById('survey_Tgoal').value = Math.round(state.Tgoal);
+			document.getElementById('surveyErr').textContent = '';
+			const startVal = Math.min(MAX_DAILY_MINS, Math.round(state.Tstart));
+			const goalVal = Math.min(startVal, Math.round(state.Tgoal));
+			const startEl = document.getElementById('survey_Tstart');
+			const goalEl = document.getElementById('survey_Tgoal');
+			startEl.value = startVal;
+			goalEl.max = startVal;
+			goalEl.value = goalVal;
 			document.getElementById('startModal').classList.add('open');
 		}
 
 		function submitStartingSurvey() {
 			const ts = parseFloat(document.getElementById('survey_Tstart').value);
 			const tg = parseFloat(document.getElementById('survey_Tgoal').value);
-			if (isNaN(ts) || isNaN(tg) || tg <= 0) return;
+			if (isNaN(ts) || isNaN(tg) || ts <= 0 || tg <= 0) {
+				document.getElementById('surveyErr').textContent = 'Enter valid numbers greater than 0.';
+				return;
+			}
+			if (ts > MAX_DAILY_MINS || tg > MAX_DAILY_MINS) {
+				document.getElementById('surveyErr').textContent = `Values cannot exceed ${MAX_DAILY_MINS} minutes (60 × 24).`;
+				document.getElementById('survey_Tstart').value = Math.min(MAX_DAILY_MINS, ts);
+				document.getElementById('survey_Tgoal').value = Math.min(MAX_DAILY_MINS, tg);
+				return;
+			}
+			if (tg > ts) {
+				document.getElementById('surveyErr').textContent = 'Your goal cannot be higher than your current scrolling time.';
+				document.getElementById('survey_Tgoal').value = ts;
+				return;
+			}
+			document.getElementById('surveyErr').textContent = '';
 			state.Tstart = ts;
 			state.Tgoal = tg;
 			state.timeScrolling = 0;
@@ -964,8 +1075,9 @@
 			updateDailyGoalFromState();
 			document.getElementById('startModal').classList.remove('open');
 			state.popupOpen = false;
-			syncInputsFromState();
+			syncVariableDisplays();
 			refreshUI(true);
+			saveToDataStorage();
 		}
 
 		function triggerNextDay() {
@@ -982,11 +1094,16 @@
 			state.sim_minutes = 8 * 60;
 			state.dailyGoal = calcDailyGoal(state.current_day, state.Tstart, state.Tgoal, state.timeBetweenLogins, prevRelapse);
 			recalculateRisk();
-			syncInputsFromState();
+			syncVariableDisplays();
 			refreshUI(true);
 
 			state.popupOpen = true;
 			document.getElementById('newDayTitle').textContent = `Day ${state.current_day} — New Day Survey`;
+			document.getElementById('slider_craving').value = state.craving;
+			document.getElementById('slider_withdrawal').value = state.withdrawal;
+			document.getElementById('slider_fomo').value = state.fomo;
+			document.getElementById('slider_stress').value = state.stress;
+			updatePsychSliders();
 			document.getElementById('newDayModal').classList.add('open');
 		}
 
@@ -996,11 +1113,17 @@
 				if (cb.checked) sum += parseFloat(cb.dataset.pts);
 			});
 			state.Dopamine = sum;
-			recalculateRisk();
+			state.craving = parseFloat(document.getElementById('slider_craving').value) || 0;
+			state.withdrawal = parseFloat(document.getElementById('slider_withdrawal').value) || 0;
+			state.fomo = parseFloat(document.getElementById('slider_fomo').value) || 0;
+			state.stress = parseFloat(document.getElementById('slider_stress').value) || 0;
+			state.psychState = calcPsychStateFromSliders(state.craving, state.withdrawal, state.fomo, state.stress);
+			updateDailyGoalFromState();
 			document.getElementById('newDayModal').classList.remove('open');
 			state.popupOpen = false;
-			syncInputsFromState();
+			syncVariableDisplays();
 			refreshUI(true);
+			saveToDataStorage();
 		}
 
 		// 1 hr/s clock (6 simulated minutes every 100 ms)
@@ -1016,21 +1139,19 @@
 		}, 100);
 
 		window.addEventListener('resize', () => refreshUI(true));
-		window.addEventListener('DOMContentLoaded', () => {
-			['in_nightScrolling', 'in_psychState', 'in_timeScrolling', 'in_dailyGoal', 'in_timeBetweenLogins', 'in_Dopamine'].forEach((id) => {
-				const el = document.getElementById(id);
-				el.addEventListener('input', () => applyRiskInputs(false));
-				el.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyRiskInputs(true); });
-			});
-			['goal_day', 'goal_Tstart', 'goal_Tgoal', 'goal_timeBetweenLogins', 'goal_relapseProbability'].forEach((id) => {
-				const el = document.getElementById(id);
-				el.addEventListener('input', () => applyGoalInputs(false));
-				el.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyGoalInputs(true); });
+		window.addEventListener('DOMContentLoaded', async () => {
+			const surveyStartEl = document.getElementById('survey_Tstart');
+			const surveyGoalEl = document.getElementById('survey_Tgoal');
+			surveyStartEl.addEventListener('input', () => {
+				const maxGoal = Math.min(MAX_DAILY_MINS, Math.max(1, parseFloat(surveyStartEl.value) || MAX_DAILY_MINS));
+				surveyGoalEl.max = maxGoal;
 			});
 
+			await loadDataStorage();
 			updateDailyGoalFromState();
-			syncInputsFromState();
+			syncVariableDisplays();
 			refreshUI(true);
+			saveToDataStorage();
 			openStartingSurvey();
 		});
 	</script>
