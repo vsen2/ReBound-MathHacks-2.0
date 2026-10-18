@@ -1,10 +1,14 @@
-function showReboundBlocker(domain) {
-  // Prevent duplicate blockers
-  if (document.getElementById("rebound-blocker")) return;
+function showReboundBlocker(domain, timeUsedMinutes, dailyLimitMinutes) {
+  // If blocker already exists, just update the text numbers
+  const existingOverlay = document.getElementById("rebound-blocker");
+  if (existingOverlay) {
+    const textElement = document.getElementById("rebound-limit-text");
+    if (textElement) {
+      textElement.innerHTML = `⏳ Daily Limit Reached: <strong>${timeUsedMinutes}/${dailyLimitMinutes} mins</strong> used.`;
+    }
+    return;
+  }
 
-  const dailyLimitMinutes = 30;
-  const timeUsedMinutes = 30; // Reached limit example
-  const timeRemaining = Math.max(0, dailyLimitMinutes - timeUsedMinutes);
   const logoUrl = chrome.runtime.getURL("logo.png");
 
   // Create full-screen overlay container
@@ -58,7 +62,7 @@ function showReboundBlocker(domain) {
         width: 100%;
         box-sizing: border-box;
       ">
-        <span style="color: #E2E8F0; font-size: 14px; display: block;">
+        <span id="rebound-limit-text" style="color: #E2E8F0; font-size: 14px; display: block;">
           ⏳ Daily Limit Reached: <strong>${timeUsedMinutes}/${dailyLimitMinutes} mins</strong> used.
         </span>
       </div>
@@ -96,13 +100,11 @@ function showReboundBlocker(domain) {
 
   // Button actions
   document.getElementById("rebound-bypass-btn").addEventListener("click", () => {
-    // Remove blocker allowing temporary access
     overlay.remove();
     console.log("[Rebound] User bypassed the block for this session.");
   });
 
   document.getElementById("rebound-leave-btn").addEventListener("click", () => {
-    // Redirect away or close tab
     window.location.href = "https://www.google.com";
   });
 }
@@ -110,7 +112,15 @@ function showReboundBlocker(domain) {
 function initReboundBlocker() {
   const hostname = window.location.hostname;
   if (hostname.includes("instagram.com") || hostname.includes("tiktok.com")) {
-    showReboundBlocker(hostname);
+    
+    // Fetch limits from storage first
+    chrome.storage.local.get("usageData", (result) => {
+      // Default to 0 / 30 if python server hasn't sent data yet
+      const timeUsed = result.usageData?.total || 0;
+      const dailyLimit = result.usageData?.daily_limit || 30;
+      
+      showReboundBlocker(hostname, timeUsed, dailyLimit);
+    });
   }
 }
 
@@ -120,27 +130,18 @@ if (document.readyState === "loading") {
   initReboundBlocker();
 }
 
-
-
-
-
-// Load stored data when popup opens
-document.addEventListener('DOMContentLoaded', () => {
-  chrome.storage.local.get("usageData", (result) => {
-    if (result.usageData) {
-      displayData(result.usageData);
-    }
-  });
-});
-
-// Listen for live updates sent from background.js
+// Listen for live updates sent from background.js (via the Python server)
 chrome.runtime.onMessage.addListener((message) => {
-  if (message.type === "UPDATE_UI") {
-    displayData(message.data);
+  if (message.type === "UPDATE_UI" && message.data) {
+    const hostname = window.location.hostname;
+    
+    // Updates the blocker live with new variables
+    showReboundBlocker(hostname, message.data.total, message.data.daily_limit);
+    
+    // If you have a popup.html open, update that too
+    const totalDisplay = document.getElementById('totalDisplay');
+    const limitDisplay = document.getElementById('limitDisplay');
+    if (totalDisplay) totalDisplay.textContent = `Total: ${message.data.total}`;
+    if (limitDisplay) limitDisplay.textContent = `Limit: ${message.data.daily_limit}`;
   }
 });
-
-function displayData(data) {
-  document.getElementById('totalDisplay').textContent = `Total: ${data.total}`;
-  document.getElementById('limitDisplay').textContent = `Limit: ${data.daily_limit}`;
-}

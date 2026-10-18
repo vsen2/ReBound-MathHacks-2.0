@@ -33,17 +33,23 @@ let socket = null;
 function connect() {
   socket = new WebSocket('ws://127.0.0.1:5000');
 
-  socket.onmessage = (event) => {
+  // Silently catch socket errors to prevent console spam when server is off
+  socket.onerror = () => {};
+socket.onmessage = (event) => {
     try {
       const data = JSON.parse(event.data);
-      console.log("Total:", data.total, "Limit:", data.daily_limit);
-
+      
       // Save usage limits to storage
       chrome.storage.local.set({ usageData: data });
 
-      // Relay to popup if it's currently open
-      chrome.runtime.sendMessage({ type: "UPDATE_UI", data: data }).catch(() => {
-        // Popup is closed; message safely ignored
+      // 1. Relay to popup (if open)
+      chrome.runtime.sendMessage({ type: "UPDATE_UI", data: data }).catch(() => {});
+      
+      // 2. Relay to active tab so content.js can update the screen live
+      chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        if (tabs[0]) {
+          chrome.tabs.sendMessage(tabs[0].id, { type: "UPDATE_UI", data: data }).catch(() => {});
+        }
       });
     } catch (err) {
       console.error("Error parsing message from Python:", err);
