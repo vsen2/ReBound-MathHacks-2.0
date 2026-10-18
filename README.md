@@ -43,15 +43,24 @@ This model treats excessive social media use as a dynamic emotional regulation i
 
 ---
 
-## Quick Local Setup
+### Quick Local Setup
 
+#### 1. Extension Setup (Chrome)
 1. **Download or Clone** this repository to your local machine.
-2. Open Google Chrome and navigate to `chrome://extensions/`.
-3. Toggle **Developer mode** on in the top-right corner.
-4. Click **Load unpacked** and select your `Rebound-extension` folder.
-5. Download Libraries in terminal: pip install pygetwindow websockets matplotlib numpy
-6. Run the "start.py" file
+2. Open **Google Chrome** and navigate to `chrome://extensions/`.
+3. Toggle **Developer mode** ON in the top-right corner.
+4. Click **Load unpacked** and select the `Rebound-extension` directory.
 
+---
+
+#### 2. Local Python Backend Server Setup
+
+The Python backend acts as a WebSocket server to process user metrics, handle live telemetry tracking, and compute mathematical models in real time.
+
+**Step A: Open Terminal / Command Prompt**
+* **Windows:** Open **Command Prompt** (or PowerShell) and navigate to the project folder:
+  ```cmd
+  cd path/to/Rebound
 ---
 
 ## Troubleshooting
