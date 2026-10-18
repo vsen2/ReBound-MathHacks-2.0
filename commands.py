@@ -20,6 +20,8 @@ w4 = 0.8   # Past 8pm Scrolling
 w5 = 0.4   # Login Interval Buffer
 
 MAX_DAILY_MINS = 60.0 * 24.0
+ADDICTION_HISTORY_DAYS = 15
+ADDICTION_SEVERITY_MAX_MINUTES = 4500.0
 
 # Gemini model (override with GEMINI_MODEL=... in .env)
 DEFAULT_GEMINI_MODEL = 'gemini-3.8-flash'
@@ -158,6 +160,21 @@ def calc_risk(nightScrolling, psychState, timeScrolling, dailyGoal, timeBetweenL
 	)
 	sigmoidRiskScore = float(calc_sigmoid(riskScore))
 	return riskScore, sigmoidRiskScore
+
+
+def calculate_addiction_severity(history):
+	"""Calculate 15-day severity using raw recency weights from 1 to 15."""
+	if not isinstance(history, (list, tuple)) or len(history) != ADDICTION_HISTORY_DAYS:
+		return None
+	if any(
+		not isinstance(minutes, (int, float))
+		or not np.isfinite(minutes)
+		or minutes < 0
+		for minutes in history
+	):
+		return None
+	weighted_minutes = sum(minutes * (index + 1) for index, minutes in enumerate(history))
+	return min(100.0, weighted_minutes / ADDICTION_SEVERITY_MAX_MINUTES * 100.0)
 
 
 def get_sigmoid_curve(riskScore, num_points=200):
@@ -460,6 +477,12 @@ class ReBoundState:
 		self.stress = float(np.clip(float(stored.get('stress', 0.0)), 0.0, 5.0))
 		self.psychState = calc_psych_state(self.craving, self.withdrawal, self.fomo, self.stress)
 		self.timeScrolling = max(0.0, float(stored.get('timeScrolling', 0.0)))
+		stored_history = stored.get('addictionHistory')
+		self._addiction_history_initialized = calculate_addiction_severity(stored_history) is not None
+		if self._addiction_history_initialized:
+			self.addictionHistory = [min(MAX_DAILY_MINS, float(minutes)) for minutes in stored_history]
+		else:
+			self.addictionHistory = [self.Tstart] * ADDICTION_HISTORY_DAYS
 		self.dailyGoal = float(stored.get('dailyGoal', 30.0))
 		self.timeBetweenLogins = max(0.0, float(stored.get('timeBetweenLogins', 0.0)))
 		self.Dopamine = float(np.clip(float(stored.get('Dopamine', 50.0)), 0.0, 100.0))
@@ -495,6 +518,8 @@ class ReBoundState:
 			'stress': self.stress,
 			'psychState': round(float(self.psychState), 4),
 			'timeScrolling': self.timeScrolling,
+			'addictionHistory': self.addictionHistory,
+			'addictionSeverity': self.addictionSeverity,
 			'dailyGoal': round(float(self.dailyGoal), 4),
 			'timeBetweenLogins': self.timeBetweenLogins,
 			'Dopamine': self.Dopamine,
@@ -507,6 +532,10 @@ class ReBoundState:
 			'avoidedScreensBeforeBed': self.avoidedScreensBeforeBed,
 			'dampingCoefficient': round(float(getattr(self, 'dampingCoefficient', 0.1)), 4),
 		}
+
+	@property
+	def addictionSeverity(self):
+		return calculate_addiction_severity(self.addictionHistory)
 
 	def sync_to_storage(self):
 		"""Persist current state to data_storage.json."""
@@ -545,6 +574,9 @@ class ReBoundState:
 		"""Save pre-app Tstart and Tgoal (capped at 60*24 min and Tgoal <= Tstart) and calculate Day 1 dailyGoal."""
 		self.Tstart = float(np.clip(float(t_start), 1.0, MAX_DAILY_MINS))
 		self.Tgoal = float(np.clip(float(t_goal), 1.0, self.Tstart))
+		if not self._addiction_history_initialized:
+			self.addictionHistory = [self.Tstart] * ADDICTION_HISTORY_DAYS
+			self._addiction_history_initialized = True
 		self.timeScrolling = 0.0
 		self.cleanScore = 1
 		self.update_daily_goal()
@@ -574,6 +606,9 @@ class ReBoundState:
 		# Remember yesterday's night scrolling for the automatic "avoided screens before bed" boolean
 		self.prevNightScrolling = self.nightScrolling
 		self.avoidedScreensBeforeBed = avoided_screens_before_bed(self.prevNightScrolling)
+		self.addictionHistory.append(min(MAX_DAILY_MINS, max(0.0, self.timeScrolling)))
+		self.addictionHistory = self.addictionHistory[-ADDICTION_HISTORY_DAYS:]
+		self._addiction_history_initialized = True
 		self.timeScrolling = 0.0
 		self.nightScrolling = 0.0
 		self.current_day += 1
@@ -605,4 +640,3 @@ class ReBoundState:
 
 # Alias for backwards compatibility
 UnscrollState = ReBoundState
-

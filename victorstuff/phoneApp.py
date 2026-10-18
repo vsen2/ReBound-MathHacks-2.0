@@ -497,6 +497,31 @@ tk.Label(relapse_box, text='RELAPSE PROBABILITY', font=('Segoe UI', 7, 'bold'), 
 results_relapse_lbl = tk.Label(relapse_box, text='50.0%', font=('Segoe UI', 15, 'bold'), fg='#528bdc', bg='#eaf3f5')
 results_relapse_lbl.pack(anchor='w', pady=(2, 0))
 
+severity_box = tk.Frame(results_card, bg='#eaf3f5', padx=10, pady=8, highlightthickness=1, highlightbackground='#cbdde3')
+severity_box.pack(fill='x', pady=(8, 0))
+tk.Label(
+	severity_box,
+	text='15-DAY ADDICTION SEVERITY',
+	font=('Segoe UI', 7, 'bold'),
+	fg='#607b85',
+	bg='#eaf3f5',
+).pack(anchor='w')
+results_severity_lbl = tk.Label(
+	severity_box,
+	text='0.0%',
+	font=('Segoe UI', 15, 'bold'),
+	fg='#528bdc',
+	bg='#eaf3f5',
+)
+results_severity_lbl.pack(anchor='w', pady=(2, 0))
+tk.Label(
+	severity_box,
+	text='Recency weighted · capped at 100%',
+	font=('Segoe UI', 7),
+	fg='#607b85',
+	bg='#eaf3f5',
+).pack(anchor='w')
+
 # Gemini AI Coach Card inside Results Tab
 ai_coach_card = tk.Frame(results_tab_frame, bg='#f7fbfc', padx=14, pady=10, highlightthickness=1, highlightbackground='#cbdde3')
 ai_coach_card.pack(fill='both', expand=True, padx=12, pady=(2, 6))
@@ -1361,6 +1386,7 @@ def refresh_ui(redraw_charts=True):
 
 	results_daily_limit_lbl.config(text=f'{state.dailyGoal:.1f} min')
 	results_relapse_lbl.config(text=f'{state.sigmoidRiskScore:.1%}')
+	results_severity_lbl.config(text=f'{state.addictionSeverity:.1f}%')
 
 	goal_stats_lbl.config(
 		text=f'Day {state.current_day} Goal: {state.dailyGoal:.1f} min  •  Target: {state.Tgoal:.0f} min'
